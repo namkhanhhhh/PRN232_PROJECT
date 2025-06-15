@@ -1,0 +1,323 @@
+/* Auth Layout Styles */
+.auth-body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
+
+.auth-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: -2;
+}
+
+.auth-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: -1;
+}
+
+/* Brand Section */
+.auth-brand-section {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 2rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-brand-content {
+    max-width: 400px;
+    text-align: center;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+    .brand-logo i {
+        font-size: 3rem;
+        margin-right: 1rem;
+        color: #ffd700;
+    }
+
+    .brand-logo h1 {
+        font-size: 3rem;
+        font-weight: bold;
+        margin: 0;
+        background: linear-gradient(45deg, #ffd700, #ffed4e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+.auth-brand-content h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.auth-brand-content p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.features-list {
+    text-align: left;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+    .feature-item i {
+        color: #4ade80;
+        margin-right: 0.75rem;
+        font-size: 1.2rem;
+    }
+
+/* Form Section */
+.auth-form-wrapper {
+    width: 100%;
+    max-width: 500px;
+    padding: 2rem;
+}
+
+.auth-container {
+    width: 100%;
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Form Styles */
+.form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+    .form-label i {
+        color: #6366f1;
+    }
+
+.form-control {
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+    .form-control:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-control.is-invalid {
+        border-color: #ef4444;
+    }
+
+.invalid-feedback {
+    display: block;
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Button Styles */
+.btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+    }
+
+.btn-google {
+    background: #fff;
+    border: 2px solid #e5e7eb;
+    color: #374151;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .btn-google:hover {
+        border-color: #db4437;
+        color: #db4437;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(219, 68, 55, 0.2);
+    }
+
+    .btn-google i {
+        color: #db4437;
+    }
+
+/* Divider */
+.auth-divider {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+}
+
+    .auth-divider::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e5e7eb;
+    }
+
+    .auth-divider span {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 0 1rem;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+/* Links */
+.auth-links {
+    margin-top: 1.5rem;
+}
+
+    .auth-links a {
+        color: #6366f1;
+        font-weight: 600;
+    }
+
+        .auth-links a:hover {
+            color: #4f46e5;
+            text-decoration: underline;
+        }
+
+/* Alerts */
+.alert {
+    border-radius: 10px;
+    border: none;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background: rgba(34, 197, 94, 0.1);
+    color: #166534;
+    border-left: 4px solid #22c55e;
+}
+
+.alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #991b1b;
+    border-left: 4px solid #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .auth-card {
+        margin: 1rem;
+        padding: 2rem;
+    }
+
+    .auth-title {
+        font-size: 1.75rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .auth-card {
+        margin: 0.5rem;
+        padding: 1.5rem;
+        border-radius: 15px;
+    }
+
+    .auth-title {
+        font-size: 1.5rem;
+    }
+
+    .col-md-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Loading Animation */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Input Group */
+.input-group .btn {
+    border-left: none;
+    border-radius: 0 10px 10px 0;
+}
+
+.input-group .form-control {
+    border-right: none;
+    border-radius: 10px 0 0 10px;
+}
+
+    .input-group .form-control:focus + .btn {
+        border-color: #6366f1;
+    }

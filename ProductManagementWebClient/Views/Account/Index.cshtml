@@ -1,0 +1,518 @@
+﻿@model BusinessObjects.DTOs.PaginatedResponseDto<BusinessObjects.DTOs.UserDto>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    Layout = "_AdminLayout";
+}
+
+<div class="content-wrapper">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header bg-white border-bottom">
+            <div class="d-flex justify-content-between align-items-center py-2">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-people-fill text-primary me-2 fs-4"></i>
+                    <h3 class="card-title mb-0 fw-semibold">Danh sách người dùng</h3>
+                </div>
+                <div class="card-actions">
+                    <button id="exportBtn" class="btn btn-outline-success btn-sm me-2">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+                    </button>
+                    <a asp-action="CreateAccount" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i> Tạo tài khoản mới
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Enhanced Search Bar -->
+            <div class="row mb-4">
+                <div class="col-lg-8 mx-auto">
+                    <div class="search-container">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" id="searchInput" class="form-control border-start-0 ps-0"
+                                   placeholder="Tìm kiếm theo tên, email hoặc tên đăng nhập..." value="@ViewData["CurrentSearch"]">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Filters -->
+            <form method="get" class="mb-4">
+                <div class="row g-3 justify-content-center">
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small">Sắp xếp theo</label>
+                        <select name="sortBy" class="form-select">
+                            <option value="Username" selected="@(ViewData["CurrentSortBy"]?.ToString() == "Username")">Tên đăng nhập</option>
+                            <option value="Email" selected="@(ViewData["CurrentSortBy"]?.ToString() == "Email")">Email</option>
+                            <option value="Role" selected="@(ViewData["CurrentSortBy"]?.ToString() == "Role")">Vai trò</option>
+                            <option value="Status" selected="@(ViewData["CurrentSortBy"]?.ToString() == "Status")">Trạng thái</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label text-muted small">Thứ tự</label>
+                        <select name="sortOrder" class="form-select">
+                            <option value="asc" selected="@(ViewData["CurrentSortOrder"]?.ToString() == "asc")">Tăng dần</option>
+                            <option value="desc" selected="@(ViewData["CurrentSortOrder"]?.ToString() == "desc")">Giảm dần</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label text-muted small">&nbsp;</label>
+                        <button type="submit" class="btn btn-info w-100 d-block">
+                            <i class="bi bi-funnel me-1"></i> Lọc
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label text-muted small">&nbsp;</label>
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100 d-block">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Làm mới
+                        </a>
+                    </div>
+                </div>
+                <input type="hidden" name="searchTerm" value="@ViewData["CurrentSearch"]" />
+                <input type="hidden" name="page" value="@ViewData["CurrentPage"]" />
+            </form>
+
+            <!-- Users Table -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="60px" class="text-center">STT</th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortBy="Username"
+                                   asp-route-sortOrder="@(ViewData["CurrentSortBy"]?.ToString() == "Username" && ViewData["CurrentSortOrder"]?.ToString() == "asc" ? "desc" : "asc")"
+                                   asp-route-searchTerm="@ViewData["CurrentSearch"]"
+                                   asp-route-page="@ViewData["CurrentPage"]"
+                                   class="text-decoration-none text-dark">
+                                    Tên đăng nhập
+                                    @if (ViewData["CurrentSortBy"]?.ToString() == "Username")
+                                    {
+                                        <i class="bi @(ViewData["CurrentSortOrder"]?.ToString() == "asc" ? "bi-sort-alpha-down" : "bi-sort-alpha-up") ms-1"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortBy="Email"
+                                   asp-route-sortOrder="@(ViewData["CurrentSortBy"]?.ToString() == "Email" && ViewData["CurrentSortOrder"]?.ToString() == "asc" ? "desc" : "asc")"
+                                   asp-route-searchTerm="@ViewData["CurrentSearch"]"
+                                   asp-route-page="@ViewData["CurrentPage"]"
+                                   class="text-decoration-none text-dark">
+                                    Email
+                                    @if (ViewData["CurrentSortBy"]?.ToString() == "Email")
+                                    {
+                                        <i class="bi @(ViewData["CurrentSortOrder"]?.ToString() == "asc" ? "bi-sort-alpha-down" : "bi-sort-alpha-up") ms-1"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>Họ tên</th>
+                            <th>Vai trò</th>
+                            <th>
+                                <a asp-action="Index" asp-route-sortBy="Status"
+                                   asp-route-sortOrder="@(ViewData["CurrentSortBy"]?.ToString() == "Status" && ViewData["CurrentSortOrder"]?.ToString() == "asc" ? "desc" : "asc")"
+                                   asp-route-searchTerm="@ViewData["CurrentSearch"]"
+                                   asp-route-page="@ViewData["CurrentPage"]"
+                                   class="text-decoration-none text-dark">
+                                    Trạng thái
+                                    @if (ViewData["CurrentSortBy"]?.ToString() == "Status")
+                                    {
+                                        <i class="bi @(ViewData["CurrentSortOrder"]?.ToString() == "asc" ? "bi-sort-down" : "bi-sort-up") ms-1"></i>
+                                    }
+                                </a>
+                            </th>
+                            <th>Ngày tạo</th>
+                            <th width="120px" class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Items?.Any() == true)
+                        {
+                            
+                                int rowNumber = (Model.CurrentPage - 1) * 10 + 1;
+                            
+                            @foreach (var user in Model.Items)
+                            {
+                                <tr class="user-row">
+                                    <td class="text-center fw-medium">@(rowNumber++)</td>
+                                    <td class="username">
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar-sm me-2">
+                                                @user.Username.Substring(0, 1).ToUpper()
+                                            </div>
+                                            <span class="fw-medium">@user.Username</span>
+                                        </div>
+                                    </td>
+                                    <td class="email">@user.Email</td>
+                                    <td class="fullname">@($"{user.FirstName} {user.LastName}".Trim())</td>
+                                    <td class="role">
+                                        <span class="badge bg-info">@user.RoleName</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(user.Status ? "bg-success" : "bg-danger")">
+                                            <i class="bi @(user.Status ? "bi-check-circle" : "bi-x-circle") me-1"></i>
+                                            @(user.Status ? "Hoạt động" : "Vô hiệu hóa")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@(user.CreatedAt?.ToString("dd/MM/yyyy") ?? "N/A")</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Details" asp-route-id="@user.Id"
+                                               class="btn btn-sm btn-outline-info" title="Xem chi tiết"
+                                               data-bs-toggle="tooltip">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <form asp-action="ToggleStatus" asp-route-id="@user.Id" method="post" class="d-inline">
+                                                <button type="submit"
+                                                        class="btn btn-sm @(user.Status ? "btn-outline-danger" : "btn-outline-success")"
+                                                        title="@(user.Status ? "Vô hiệu hóa" : "Kích hoạt")"
+                                                        data-bs-toggle="tooltip"
+                                                        onclick="return confirm('Bạn có chắc chắn muốn @(user.Status ? "vô hiệu hóa" : "kích hoạt") người dùng này?')">
+                                                    <i class="bi @(user.Status ? "bi-person-x" : "bi-person-check")"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                                        <p class="mb-0">Không có dữ liệu</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="noResults" class="alert alert-info text-center" style="display: none;">
+                <i class="bi bi-search me-2"></i>
+                Không tìm thấy người dùng nào phù hợp với tiêu chí tìm kiếm.
+            </div>
+
+            <!-- Enhanced Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted">
+                        Hiển thị <strong>@((Model.CurrentPage - 1) * 10 + 1)</strong> - <strong>@(Math.Min(Model.CurrentPage * 10, Model.TotalItems))</strong>
+                        trong tổng số <strong>@Model.TotalItems</strong> người dùng
+                    </div>
+                    
+                    <nav aria-label="Phân trang">
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="1"
+                                   asp-route-searchTerm="@ViewData["CurrentSearch"]"
+                                   asp-route-sortBy="@ViewData["CurrentSortBy"]"
+                                   asp-route-sortOrder="@ViewData["CurrentSortOrder"]">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+
+                            <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)"
+                                   asp-route-searchTerm="@ViewData["CurrentSearch"]"
+                                   asp-route-sortBy="@ViewData["CurrentSortBy"]"
+                                   asp-route-sortOrder="@ViewData["CurrentSortOrder"]">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            @{
+                                int startPage = Math.Max(1, Model.CurrentPage - 2);
+                                int endPage = Math.Min(Model.TotalPages, startPage + 4);
+
+                                if (endPage - startPage < 4 && startPage > 1)
+                                {
+                                    startPage = Math.Max(1, endPage - 4);
+                                }
+                            }
+
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-route-page="@i"
+                                       asp-route-searchTerm="@ViewData["CurrentSearch"]"
+                                       asp-route-sortBy="@ViewData["CurrentSortBy"]"
+                                       asp-route-sortOrder="@ViewData["CurrentSortOrder"]">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)"
+                                   asp-route-searchTerm="@ViewData["CurrentSearch"]"
+                                   asp-route-sortBy="@ViewData["CurrentSortBy"]"
+                                   asp-route-sortOrder="@ViewData["CurrentSortOrder"]">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+
+                            <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@Model.TotalPages"
+                                   asp-route-searchTerm="@ViewData["CurrentSearch"]"
+                                   asp-route-sortBy="@ViewData["CurrentSortBy"]"
+                                   asp-route-sortOrder="@ViewData["CurrentSortOrder"]">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .search-container {
+        position: relative;
+    }
+
+    .search-container .input-group-lg .form-control {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    }
+
+    .btn-group .btn {
+        border-radius: 6px;
+        margin: 0 2px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-group .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .user-avatar-sm {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+    }
+
+    .user-avatar-sm {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .btn-group .btn {
+        border-radius: 6px;
+        margin: 0 1px;
+    }
+
+    .table th a {
+        font-weight: 500;
+    }
+
+    .table th a:hover {
+        color: var(--primary-color) !important;
+    }
+
+    .card-actions .btn {
+        font-size: 0.875rem;
+    }
+
+    .pagination .page-link {
+        border-radius: 6px;
+        margin: 0 2px;
+        border: 1px solid #dee2e6;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .pagination .page-link:hover {
+        background-color: var(--bg-secondary);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('searchInput');
+            const userRows = document.querySelectorAll('.user-row');
+            const noResults = document.getElementById('noResults');
+            const tableContainer = document.querySelector('.table-responsive');
+
+            // Enable tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+
+            // Real-time search functionality
+            searchInput.addEventListener('input', function () {
+                const searchTerm = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                if (searchTerm === '') {
+                    userRows.forEach(function (row, index) {
+                        row.style.display = '';
+                        row.cells[0].textContent = index + 1;
+                        visibleCount++;
+                    });
+
+                    noResults.style.display = 'none';
+                    tableContainer.style.display = '';
+                    return;
+                }
+
+                userRows.forEach(function (row, index) {
+                    const username = row.querySelector('.username').textContent.toLowerCase();
+                    const email = row.querySelector('.email').textContent.toLowerCase();
+                    const fullname = row.querySelector('.fullname').textContent.toLowerCase();
+                    const role = row.querySelector('.role').textContent.toLowerCase();
+
+                    if (username.includes(searchTerm) ||
+                        email.includes(searchTerm) ||
+                        fullname.includes(searchTerm) ||
+                        role.includes(searchTerm)) {
+                        row.style.display = '';
+                        visibleCount++;
+                        row.cells[0].textContent = visibleCount;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (visibleCount === 0) {
+                    noResults.style.display = 'block';
+                    tableContainer.style.display = 'none';
+                } else {
+                    noResults.style.display = 'none';
+                    tableContainer.style.display = '';
+                }
+            });
+
+            // Server-side search with debounce
+            let debounceTimer;
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                const searchTerm = this.value.trim();
+
+                debounceTimer = setTimeout(function () {
+                    if (searchTerm.length === 0 || searchTerm.length >= 2) {
+                        const currentUrl = new URL(window.location.href);
+
+                        if (searchTerm.length === 0) {
+                            currentUrl.searchParams.delete('searchTerm');
+                        } else {
+                            currentUrl.searchParams.set('searchTerm', searchTerm);
+                        }
+
+                        currentUrl.searchParams.set('page', '1');
+                        window.location.href = currentUrl.toString();
+                    }
+                }, 500);
+            });
+
+            if (searchInput.value) {
+                searchInput.focus();
+                const val = searchInput.value;
+                searchInput.value = '';
+                searchInput.value = val;
+            }
+
+            // Excel Export functionality
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                const button = this;
+                const originalText = button.innerHTML;
+                
+                // Show loading state
+                button.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Đang xuất...';
+                button.disabled = true;
+                
+                // Get current search and filter parameters
+                const searchTerm = document.getElementById('searchInput').value;
+                const sortBy = document.querySelector('select[name="sortBy"]').value;
+                const sortOrder = document.querySelector('select[name="sortOrder"]').value;
+                
+                // Create export URL with parameters
+                const exportUrl = new URL('/Account/ExportUsers', window.location.origin);
+                if (searchTerm) exportUrl.searchParams.set('searchTerm', searchTerm);
+                exportUrl.searchParams.set('sortBy', sortBy);
+                exportUrl.searchParams.set('sortOrder', sortOrder);
+                
+                // Create temporary link and trigger download
+                const link = document.createElement('a');
+                link.href = exportUrl.toString();
+                link.download = `DanhSachNguoiDung_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Reset button state
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }, 2000);
+            });
+        });
+    </script>
+}

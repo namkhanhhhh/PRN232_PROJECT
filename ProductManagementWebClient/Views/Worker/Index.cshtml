@@ -1,0 +1,449 @@
+﻿@model BusinessObjects.DTOs.Worker.WorkerDashboardDto
+@{
+    ViewData["Title"] = "Tìm việc làm";
+    Layout = "_WorkerLayout";
+}
+
+<div class="bg-blue-50 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Tìm công việc mơ ước của bạn</h1>
+            <p class="text-xl text-gray-600 mb-8">Tìm kiếm hàng nghìn công việc từ các nhà tuyển dụng hàng đầu</p>
+
+            <!-- Search Form -->
+            <form asp-controller="Worker" asp-action="SearchResults" method="get" class="bg-white p-6 rounded-lg shadow-lg">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1 text-left">Từ khóa</label>
+                        <input type="text" id="keyword" name="keyword" placeholder="Tên công việc, kỹ năng hoặc công ty"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="location" class="block text-sm font-medium text-gray-700 mb-1 text-left">Địa điểm</label>
+                        <input type="text" id="location" name="location" placeholder="Thành phố hoặc khu vực"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="categoryId" class="block text-sm font-medium text-gray-700 mb-1 text-left">Danh mục</label>
+                        <select id="categoryId" name="categoryId"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="0">Tất cả danh mục</option>
+                            @if (Model.FeaturedCategories != null)
+                            {
+                                @foreach (var category in Model.FeaturedCategories)
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <button type="button" id="advanced-search-toggle" class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Tìm kiếm nâng cao
+                    </button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+                        Tìm việc làm
+                    </button>
+                </div>
+
+                <!-- Advanced Search Options (Hidden by default) -->
+                <div id="advanced-search" class="hidden mt-4 pt-4 border-t border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="jobType" class="block text-sm font-medium text-gray-700 mb-1 text-left">Loại công việc</label>
+                            <select id="jobType" name="jobType"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Tất cả loại</option>
+                                <option value="Toàn thời gian">Toàn thời gian</option>
+                                <option value="Bán thời gian">Bán thời gian</option>
+                                </select>
+                        </div>
+                        <div>
+                            <label for="minSalary" class="block text-sm font-medium text-gray-700 mb-1 text-left">Lương tối thiểu</label>
+                            <input type="number" id="minSalary" name="minSalary" placeholder="Lương tối thiểu"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="maxSalary" class="block text-sm font-medium text-gray-700 mb-1 text-left">Lương tối đa</label>
+                            <input type="number" id="maxSalary" name="maxSalary" placeholder="Lương tối đa"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden anti-forgery token for AJAX requests -->
+                @Html.AntiForgeryToken()
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Categories -->
+@if (Model.FeaturedCategories != null && Model.FeaturedCategories.Any())
+{
+    <div class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl font-bold text-center mb-8">Tìm việc theo danh mục</h2>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                @foreach (var category in Model.FeaturedCategories.Take(8))
+                {
+                    <a asp-controller="Worker" asp-action="CategoryJobs" asp-route-id="@category.Id"
+                       class="bg-gray-50 hover:bg-gray-100 p-6 rounded-lg text-center transition duration-300">
+                        <div class="text-blue-600 mb-2">
+                            <svg class="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-medium text-gray-900">@category.Name</h3>
+                        <p class="text-sm text-gray-500 mt-1">@(category.JobCount) việc làm</p>
+                    </a>
+                }
+            </div>
+
+            @if (Model.FeaturedCategories.Count > 8)
+            {
+                <div class="text-center mt-8">
+                    <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">
+                        Xem tất cả danh mục
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Featured Jobs -->
+@if (Model.DiamondPosts != null && Model.DiamondPosts.Any())
+{
+    <div class="py-12 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl font-bold text-center mb-2">Việc làm nổi bật</h2>
+            <p class="text-gray-600 text-center mb-8">Khám phá những cơ hội hàng đầu từ các nhà tuyển dụng uy tín</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach (var job in Model.DiamondPosts)
+                {
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-blue-600">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-lg text-gray-900 mb-2">
+                                    <a asp-controller="Worker" asp-action="JobDetails" asp-route-id="@job.Id" class="hover:text-blue-600">
+                                        @job.Title
+                                    </a>
+                                </h3>
+                                <div class="flex items-center">
+                                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                        @job.PostType
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center text-gray-500 text-sm mb-3">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span>@job.Location</span>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                    @job.JobType
+                                </span>
+                                @if (job.SalaryMin.HasValue && job.SalaryMax.HasValue)
+                                {
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                        @job.SalaryMin.Value.ToString("#,##0") - @job.SalaryMax.Value.ToString("#,##0") VNĐ
+                                    </span>
+                                }
+                                else if (job.SalaryMin.HasValue)
+                                {
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                        Từ @job.SalaryMin.Value.ToString("#,##0") VNĐ
+                                    </span>
+                                }
+                                else if (job.SalaryMax.HasValue)
+                                {
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                        Đến @job.SalaryMax.Value.ToString("#,##0") VNĐ
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
+                                        @if (!string.IsNullOrEmpty(job.EmployerAvatar))
+                                        {
+                                            <img src="@job.EmployerAvatar" alt="@job.EmployerName" class="w-8 h-8 rounded-full">
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-600 font-semibold text-sm">@job.EmployerName.Substring(0, 1).ToUpper()</span>
+                                        }
+                                    </div>
+                                    <span class="text-sm text-gray-600">@job.EmployerName</span>
+                                </div>
+
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span>@((DateTime.Now - job.CreatedAt.Value).TotalDays < 1 ? "Hôm nay" : $"{(int)(DateTime.Now - job.CreatedAt.Value).TotalDays} ngày trước")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 px-6 py-3 flex justify-between items-center">
+                            <a asp-controller="Worker" asp-action="JobDetails" asp-route-id="@job.Id" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                Xem chi tiết
+                            </a>
+
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <button type="button" class="wishlist-toggle text-gray-400 hover:text-red-500" data-job-id="@job.Id" data-is-in-wishlist="@job.IsInWishlist.ToString().ToLower()">
+                                    @if (job.IsInWishlist)
+                                    {
+                                        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    }
+                                    else
+                                    {
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.682l-1.318-1.364a4.5 4.5 0 00-6.364 0z"></path>
+                                        </svg>
+                                    }
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Most Viewed Jobs -->
+@if (Model.MostViewedPosts != null && Model.MostViewedPosts.Any())
+{
+    <div class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl font-bold text-center mb-2">Việc làm được xem nhiều nhất</h2>
+            <p class="text-gray-600 text-center mb-8">Những vị trí phổ biến đang được quan tâm</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach (var job in Model.MostViewedPosts)
+                {
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-lg text-gray-900 mb-2">
+                                    <a asp-controller="Worker" asp-action="JobDetails" asp-route-id="@job.Id" class="hover:text-blue-600">
+                                        @job.Title
+                                    </a>
+                                </h3>
+                                <div class="flex items-center">
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                        @job.PostType
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center text-gray-500 text-sm mb-3">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span>@job.Location</span>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                    @job.JobType
+                                </span>
+                                @if (job.SalaryMin.HasValue && job.SalaryMax.HasValue)
+                                {
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                        @job.SalaryMin.Value.ToString("#,##0") - @job.SalaryMax.Value.ToString("#,##0") VNĐ
+                                    </span>
+                                }
+                                else if (job.SalaryMin.HasValue)
+                                {
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                        Từ @job.SalaryMin.Value.ToString("#,##0") VNĐ
+                                    </span>
+                                }
+                                else if (job.SalaryMax.HasValue)
+                                {
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                        Đến @job.SalaryMax.Value.ToString("#,##0") VNĐ
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-2">
+                                        @if (!string.IsNullOrEmpty(job.EmployerAvatar))
+                                        {
+                                            <img src="@job.EmployerAvatar" alt="@job.EmployerName" class="w-8 h-8 rounded-full">
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-600 font-semibold text-sm">@job.EmployerName.Substring(0, 1).ToUpper()</span>
+                                        }
+                                    </div>
+                                    <span class="text-sm text-gray-600">@job.EmployerName</span>
+                                </div>
+
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                    <span>@job.ViewCount lượt xem</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 px-6 py-3 flex justify-between items-center">
+                            <a asp-controller="Worker" asp-action="JobDetails" asp-route-id="@job.Id" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                Xem chi tiết
+                            </a>
+
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <button type="button" class="wishlist-toggle text-gray-400 hover:text-red-500" data-job-id="@job.Id" data-is-in-wishlist="@job.IsInWishlist.ToString().ToLower()">
+                                    @if (job.IsInWishlist)
+                                    {
+                                        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    }
+                                    else
+                                    {
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.682l-1.318-1.364a4.5 4.5 0 00-6.364 0z"></path>
+                                        </svg>
+                                    }
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="text-center mt-8">
+                <a asp-controller="Worker" asp-action="SearchResults" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md inline-block">
+                    Xem tất cả việc làm
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Toggle advanced search options
+        document.getElementById('advanced-search-toggle').addEventListener('click', function () {
+            const advancedSearch = document.getElementById('advanced-search');
+            advancedSearch.classList.toggle('hidden');
+
+            // Change the icon based on visibility
+            const icon = this.querySelector('svg');
+            if (advancedSearch.classList.contains('hidden')) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path>';
+            }
+        });
+
+        // Wishlist toggle functionality - FIXED VERSION
+        document.querySelectorAll('.wishlist-toggle').forEach(button => {
+            button.addEventListener('click', function () {
+                const jobId = this.getAttribute('data-job-id');
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                // Create FormData instead of JSON - this matches JobDetails.cshtml approach
+                const formData = new FormData();
+                formData.append('jobId', jobId);
+
+                fetch('/Worker/ToggleWishlist', {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    body: formData  // Use FormData instead of JSON
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(data.error);
+                            alert(data.error);
+                            return;
+                        }
+
+                        // Update the button state
+                        this.setAttribute('data-is-in-wishlist', data.isInWishlist);
+
+                        if (data.isInWishlist) {
+                            this.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>';
+                            this.classList.add('text-red-500');
+                            this.classList.remove('text-gray-400');
+                        } else {
+                            this.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.682l-1.318-1.364a4.5 4.5 0 00-6.364 0z"></path></svg>';
+                            this.classList.remove('text-red-500');
+                            this.classList.add('text-gray-400');
+                        }
+
+                        // Show success message
+                        const message = document.createElement('div');
+                        message.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                        message.textContent = data.message;
+                        document.body.appendChild(message);
+
+                        setTimeout(() => {
+                            message.remove();
+                        }, 3000);
+
+                        // Update wishlist badge count if it exists
+                        updateWishlistBadge();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Đã xảy ra lỗi khi cập nhật danh sách yêu thích');
+                    });
+            });
+        });
+
+        // Function to update wishlist badge count
+        function updateWishlistBadge() {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            fetch('/Worker/GetWishlistCount', {
+                method: 'GET',
+                headers: {
+                    'RequestVerificationToken': token || ''
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const wishlistBadge = document.getElementById('wishlist-badge');
+                    if (wishlistBadge) {
+                        if (data.count > 0) {
+                            wishlistBadge.textContent = data.count;
+                            wishlistBadge.classList.remove('hidden');
+                        } else {
+                            wishlistBadge.classList.add('hidden');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error updating wishlist badge:', error));
+        }</script>
+}

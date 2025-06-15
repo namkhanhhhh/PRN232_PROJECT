@@ -1,0 +1,122 @@
+﻿@model BusinessObjects.DTOs.Customer.RoleSelectionDto
+
+@{
+    ViewData["Title"] = "Choose Your Role";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Choose Your Role</h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead text-center mb-4">
+                        Welcome to SJOB, @Model.Username! Please select your role to continue:
+                    </p>
+
+                    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+                    {
+                        <div class="alert alert-danger">
+                            @ViewBag.ErrorMessage
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(ViewBag.ApiError))
+                    {
+                        <div class="alert alert-warning">
+                            @ViewBag.ApiError
+                        </div>
+                    }
+
+                    <div class="row">
+                        @foreach (var role in Model.AvailableRoles)
+                        {
+                            <div class="col-md-6">
+                                <div class="card mb-3 h-100 role-card" id="@(role.Name.ToLower())-card">
+                                    <div class="card-body text-center">
+                                        @if (role.Name.ToLower() == "worker")
+                                        {
+                                            <i class="fas fa-user-tie fa-4x mb-3 text-primary"></i>
+                                            <h4>Worker</h4>
+                                            <p>Find jobs and opportunities that match your skills</p>
+                                        }
+                                        else if (role.Name.ToLower() == "employer")
+                                        {
+                                            <i class="fas fa-building fa-4x mb-3 text-success"></i>
+                                            <h4>Employer</h4>
+                                            <p>Post jobs and find the right talent for your company</p>
+                                        }
+
+                                        <form asp-action="SelectRole" asp-controller="Customer" method="post">
+                                            <input type="hidden" name="selectedRole" value="@role.Name" />
+                                            <button type="submit" class="btn @(role.Name.ToLower() == "worker" ? "btn-outline-primary" : "btn-outline-success") btn-block">
+                                                Select @role.Name
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success mt-3">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger mt-3">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Add hover effect to role cards
+            $(".role-card").hover(
+                function () {
+                    $(this).addClass("shadow-lg").css('cursor', 'pointer');
+                },
+                function () {
+                    $(this).removeClass("shadow-lg");
+                }
+            );
+
+            // Make the entire card clickable
+            $(".role-card").click(function () {
+                $(this).find("button").click();
+            });
+        });
+    </script>
+}
+
+<style>
+    .role-card {
+        transition: all 0.3s ease;
+        border: 1px solid #dee2e6;
+    }
+
+        .role-card:hover {
+            transform: translateY(-5px);
+        }
+
+    #worker-card:hover {
+        border-color: var(--primary);
+    }
+
+    #employer-card:hover {
+        border-color: var(--success);
+    }
+</style>

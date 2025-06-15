@@ -1,0 +1,46 @@
+﻿@{
+    ViewData["Title"] = "Quên mật khẩu";
+    Layout = "_AuthLayout";
+}
+
+<h2 class="auth-title">Quên mật khẩu</h2>
+<p class="auth-subtitle">Nhập địa chỉ email của bạn để nhận mã xác nhận đặt lại mật khẩu.</p>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
+<form method="post" asp-controller="ForgotPassword" asp-action="GoForgotPassword">
+    <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="Nhập địa chỉ email của bạn" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-envelope me-2"></i>
+        Gửi mã xác nhận
+    </button>
+</form>
+
+<div class="auth-links">
+    <div class="text-center">
+        <a href="@Url.Action("Index", "Login")">
+            <i class="bi bi-arrow-left me-1"></i>
+            Quay lại đăng nhập
+        </a>
+    </div>
+</div>

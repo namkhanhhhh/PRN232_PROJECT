@@ -1,0 +1,501 @@
+﻿@model BusinessObjects.DTOs.JobPost.JobPostListDto
+
+@{
+    ViewData["Title"] = "Chi tiết bài đăng";
+    Layout = "~/Views/Shared/_JobPostManagementLayout.cshtml";
+    var isInactive = Model.Status?.ToLower() == "inactive";
+    var isExpired = Model.Deadline < DateOnly.FromDateTime(DateTime.Now);
+}
+
+<style>
+    .form-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px 10px 0 0;
+        margin-bottom: 0;
+        position: relative;
+    }
+
+        .form-header.inactive {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .form-header.expired {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+    .status-overlay {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        padding: 0.75rem 1.25rem;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .form-section {
+        background: white;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+        .form-section.inactive {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .form-section.expired {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+        }
+
+    .form-section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+        .form-section-title.inactive {
+            color: #dc2626;
+            border-bottom-color: #fecaca;
+        }
+
+        .form-section-title.expired {
+            color: #d97706;
+            border-bottom-color: #fed7aa;
+        }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        background-color: #f8fafc;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+    }
+
+        .info-item.inactive {
+            background-color: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .info-item.expired {
+            background-color: #fffbeb;
+            border-color: #fed7aa;
+        }
+
+        .info-item i {
+            color: #0ea5e9;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .info-item.inactive i {
+            color: #ef4444;
+        }
+
+        .info-item.expired i {
+            color: #f59e0b;
+        }
+
+    .info-label {
+        font-weight: 600;
+        color: #334155;
+        margin-right: 0.5rem;
+        min-width: 100px;
+    }
+
+    .info-value {
+        color: #64748b;
+        flex: 1;
+    }
+
+    .post-type-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: capitalize;
+    }
+
+        .post-type-badge.silver {
+            background-color: #f1f5f9;
+            color: #64748b;
+        }
+
+        .post-type-badge.gold {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .post-type-badge.diamond {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+        .status-badge.active {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .status-badge.inactive {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .status-badge.expired {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+    .detail-section {
+        background-color: #f8fafc;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #0ea5e9;
+    }
+
+        .detail-section.inactive {
+            background-color: #fef2f2;
+            border-left-color: #ef4444;
+        }
+
+        .detail-section.expired {
+            background-color: #fffbeb;
+            border-left-color: #f59e0b;
+        }
+
+        .detail-section h4 {
+            color: #1e293b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .detail-section h4 i {
+                color: #0ea5e9;
+            }
+
+        .detail-section.inactive h4 {
+            color: #dc2626;
+        }
+
+            .detail-section.inactive h4 i {
+                color: #ef4444;
+            }
+
+        .detail-section.expired h4 {
+            color: #d97706;
+        }
+
+            .detail-section.expired h4 i {
+                color: #f59e0b;
+            }
+
+    .inactive-notice {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border: 1px solid #fecaca;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .expired-notice {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        border: 1px solid #fed7aa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .notice-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+        .notice-icon.inactive {
+            color: #ef4444;
+        }
+
+        .notice-icon.expired {
+            color: #f59e0b;
+        }
+
+    .form-actions {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin: 0 0.5rem;
+    }
+
+    .btn-secondary {
+        background-color: #6b7280;
+        color: white;
+        border: none;
+    }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+            color: white;
+        }
+
+    .btn-primary {
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+            color: white;
+        }
+
+    .btn-success {
+        background-color: #10b981;
+        color: white;
+        border: none;
+    }
+
+        .btn-success:hover {
+            background-color: #059669;
+            color: white;
+        }
+</style>
+
+<div class="form-container">
+    <div class="form-header @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+        <h2><i class="fas fa-eye"></i> @ViewData["Title"]</h2>
+        <div class="status-overlay">
+            @if (isInactive)
+            {
+                <i class="fas fa-eye-slash"></i>
+                <span>Bài đăng đã bị ẩn</span>
+            }
+            else if (isExpired)
+            {
+                <i class="fas fa-calendar-times"></i>
+                <span>Bài đăng đã hết hạn</span>
+            }
+            else
+            {
+                <i class="fas fa-check-circle"></i>
+                <span>Bài đăng đang hoạt động</span>
+            }
+        </div>
+    </div>
+
+    @if (isInactive)
+    {
+        <div class="inactive-notice">
+            <div class="notice-icon inactive">
+                <i class="fas fa-eye-slash"></i>
+            </div>
+            <h4 style="color: #dc2626; margin-bottom: 0.5rem;">Bài đăng đã bị ẩn</h4>
+            <p style="color: #7f1d1d; margin: 0;">Bài đăng này hiện không hiển thị với người tìm việc. Bạn có thể kích hoạt lại bất cứ lúc nào.</p>
+        </div>
+    }
+    else if (isExpired)
+    {
+        <div class="expired-notice">
+            <div class="notice-icon expired">
+                <i class="fas fa-calendar-times"></i>
+            </div>
+            <h4 style="color: #d97706; margin-bottom: 0.5rem;">Bài đăng đã hết hạn</h4>
+            <p style="color: #92400e; margin: 0;">Bài đăng này đã hết hạn vào ngày @Model.Deadline?.ToString("dd/MM/yyyy"). Hãy gia hạn để tiếp tục tuyển dụng.</p>
+        </div>
+    }
+
+    <div class="form-section @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+        <div class="form-section-title @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+            <i class="fas fa-info-circle"></i> Thông tin cơ bản
+        </div>
+
+        <div class="mb-4">
+            <h3 class="text-primary">@Model.Title</h3>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <i class="fas fa-map-marker-alt"></i>
+                <span class="info-label">Địa điểm:</span>
+                <span class="info-value">@Model.Location</span>
+            </div>
+
+            <div class="info-item @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <i class="fas fa-briefcase"></i>
+                <span class="info-label">Hình thức:</span>
+                <span class="info-value">@Model.JobType</span>
+            </div>
+
+            <div class="info-item @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <i class="fas fa-star"></i>
+                <span class="info-label">Kinh nghiệm:</span>
+                <span class="info-value">@Model.ExperienceLevel</span>
+            </div>
+
+            <div class="info-item @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <i class="fas fa-money-bill-wave"></i>
+                <span class="info-label">Lương:</span>
+                <span class="info-value">@Model.SalaryMin?.ToString("N0") - @Model.SalaryMax?.ToString("N0") VNĐ</span>
+            </div>
+
+            <div class="info-item @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <i class="fas fa-tag"></i>
+                <span class="info-label">Loại tin:</span>
+                <span class="info-value">
+                    <span class="post-type-badge @Model.PostType">@Model.PostType</span>
+                </span>
+            </div>
+
+            <div class="info-item @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <i class="fas fa-eye"></i>
+                <span class="info-label">Lượt xem:</span>
+                <span class="info-value">@Model.ViewCount</span>
+            </div>
+
+            <div class="info-item @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <i class="fas fa-calendar-plus"></i>
+                <span class="info-label">Ngày đăng:</span>
+                <span class="info-value">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</span>
+            </div>
+
+            <div class="info-item @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <i class="fas fa-toggle-on"></i>
+                <span class="info-label">Trạng thái:</span>
+                <span class="info-value">
+                    @if (isInactive)
+                    {
+                        <span class="status-badge inactive">
+                            <i class="fas fa-eye-slash"></i>
+                            Đã ẩn
+                        </span>
+                    }
+                    else if (isExpired)
+                    {
+                        <span class="status-badge expired">
+                            <i class="fas fa-calendar-times"></i>
+                            Hết hạn
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="status-badge active">
+                            <i class="fas fa-check-circle"></i>
+                            Đang hoạt động
+                        </span>
+                    }
+                </span>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ImageMain))
+    {
+        <div class="form-section @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+            <div class="form-section-title @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <i class="fas fa-images"></i> Hình ảnh
+            </div>
+
+            <div class="text-center">
+                <img src="@Model.ImageMain" class="img-fluid rounded" alt="Ảnh chính" style="max-height: 400px;" />
+            </div>
+        </div>
+    }
+
+    <div class="detail-section @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+        <h4><i class="fas fa-align-left"></i> Mô tả công việc</h4>
+        <div class="detail-content">
+            @Html.Raw(Model.Description?.Replace("\n", "<br/>"))
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="detail-section @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <h4><i class="fas fa-list-check"></i> Yêu cầu ứng viên</h4>
+                <div class="detail-content">
+                    @Html.Raw(Model.Requirements?.Replace("\n", "<br/>"))
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="detail-section @(isInactive ? "inactive" : (isExpired ? "expired" : ""))">
+                <h4><i class="fas fa-gift"></i> Phúc lợi</h4>
+                <div class="detail-content">
+                    @Html.Raw(Model.Benefits?.Replace("\n", "<br/>"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <a href="@Url.Action("Index", "JobPostManagement")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+        <a href="@Url.Action("Edit", "JobPostManagement", new { id = Model.Id })" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Chỉnh sửa
+        </a>
+        @if (isInactive)
+        {
+            <form asp-action="ToggleStatus" asp-route-id="@Model.Id" method="post" style="display: inline;"
+                  onsubmit="return confirm('Bạn có chắc muốn kích hoạt lại bài đăng này?')">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-eye"></i> Kích hoạt lại
+                </button>
+            </form>
+        }
+    </div>
+</div>

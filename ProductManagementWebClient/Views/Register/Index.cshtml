@@ -1,0 +1,134 @@
+﻿@{
+    ViewData["Title"] = "Đăng ký";
+    Layout = "_AuthLayout";
+}
+
+<h2 class="auth-title">Đăng ký tài khoản</h2>
+<p class="auth-subtitle">Tạo tài khoản mới để bắt đầu hành trình tìm việc của bạn.</p>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        @Html.Raw(ViewBag.ErrorMessage)
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle me-2"></i>
+        @ViewBag.SuccessMessage
+    </div>
+}
+
+<form method="post" asp-action="Index" asp-controller="Register">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="firstName" class="form-label">Tên</label>
+                <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Nhập tên của bạn" required>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="lastName" class="form-label">Họ</label>
+                <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Nhập họ của bạn" required>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="username" class="form-label">Tên đăng nhập</label>
+        <input type="text" class="form-control" id="username" name="username" placeholder="Nhập tên đăng nhập" required pattern="^[a-zA-Z0-9]+$" title="Chỉ cho phép chữ cái và số (Không có dấu)!">
+    </div>
+
+    <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="Nhập email của bạn" required>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="password" class="form-label">Mật khẩu</label>
+                <div class="password-input-group">
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Ít nhất 6 ký tự" minlength="6" required>
+                    <button type="button" class="password-toggle" id="togglePassword">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                <div class="password-input-group">
+                    <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" minlength="6" required>
+                    <button type="button" class="password-toggle" id="toggleConfirmPassword">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-person-plus me-2"></i>
+        Đăng ký
+    </button>
+</form>
+
+<div class="auth-links">
+    Đã có tài khoản? <a href="@Url.Action("Index", "Login")">Đăng nhập ngay</a>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Toggle password visibility for password field
+            const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#password');
+
+            if (togglePassword && password) {
+                togglePassword.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                    password.setAttribute('type', type);
+
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-eye');
+                    icon.classList.toggle('bi-eye-slash');
+                });
+            }
+
+            // Toggle password visibility for confirm password field
+            const toggleConfirmPassword = document.querySelector('#toggleConfirmPassword');
+            const confirmPassword = document.querySelector('#confirmPassword');
+
+            if (toggleConfirmPassword && confirmPassword) {
+                toggleConfirmPassword.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                    confirmPassword.setAttribute('type', type);
+
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-eye');
+                    icon.classList.toggle('bi-eye-slash');
+                });
+            }
+
+            // Password confirmation validation
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    if (password.value !== confirmPassword.value) {
+                        e.preventDefault();
+                        alert('Mật khẩu xác nhận không khớp!');
+                        confirmPassword.focus();
+                    }
+                });
+            }
+        });
+    </script>
+}

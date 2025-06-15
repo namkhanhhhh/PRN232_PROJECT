@@ -1,0 +1,405 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SJOB</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<style>
+    /* Additional custom styles for Worker Layout */
+    .navbar-brand {
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+
+    .nav-link {
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+        .nav-link:hover {
+            transform: translateY(-1px);
+        }
+
+    .dropdown-menu {
+        border: none;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    .dropdown-item {
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease;
+    }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+    .badge {
+        animation: pulse 2s infinite;
+    }
+
+    .alert {
+        animation: slideInDown 0.5s ease-out;
+    }
+
+    /* Footer styles */
+    footer {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    }
+
+        footer a:hover {
+            color: #60a5fa !important;
+            transition: color 0.3s ease;
+        }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+    /* User dropdown menu */
+    .user-dropdown {
+        position: relative;
+    }
+
+    .user-dropdown-menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 0.5rem);
+        width: 220px;
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px) scale(0.95);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+        z-index: 50;
+    }
+
+        .user-dropdown-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+</style>
+
+<body>
+    <header>
+        <nav class="bg-white shadow-lg">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center">
+                        <a asp-controller="Worker" asp-action="Index" class="text-2xl font-bold text-blue-600">
+                            SJOB
+                        </a>
+                    </div>
+
+                    <div class="hidden md:flex items-center space-x-6">
+                        <a asp-controller="Worker" asp-action="Index" class="text-gray-700 hover:text-blue-600 transition duration-300">
+                            Tìm việc làm
+                        </a>
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <!-- Wishlist with badge -->
+                            <a asp-controller="Worker" asp-action="Wishlist" class="relative text-gray-700 hover:text-blue-600 transition duration-300">
+                                <span class="flex items-center">
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.682l-1.318-1.364a4.5 4.5 0 00-6.364 0z"></path>
+                                    </svg>
+                                    Yêu thích
+                                </span>
+                                <span id="wishlist-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                            </a>
+
+                            <!-- Applications with badge -->
+                            <a asp-controller="Worker" asp-action="MyApplications" class="relative text-gray-700 hover:text-blue-600 transition duration-300">
+                                <span class="flex items-center">
+                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Đơn ứng tuyển
+                                </span>
+                                <span id="applications-badge" class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                            </a>
+
+                            <!-- User Dropdown -->
+                            <div class="user-dropdown">
+                                <button id="userDropdownButton" class="flex items-center text-gray-700 hover:text-blue-600 transition duration-300">
+                                    <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
+                                        <span class="text-gray-600 font-semibold text-sm">@User.Identity.Name?.Substring(0, 1).ToUpper()</span>
+                                    </div>
+                                    <span>@User.Identity.Name</span>
+                                    <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div id="userDropdownMenu" class="user-dropdown-menu">
+                                    <a asp-controller="Worker" asp-action="Profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                        Hồ sơ của tôi
+                                    </a>
+                                    <a asp-controller="Worker" asp-action="EditProfile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                        Chỉnh sửa hồ sơ
+                                    </a>
+                                    <a asp-controller="Worker" asp-action="ChangePassword" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                        </svg>
+                                        Đổi mật khẩu
+                                    </a>
+                                    <div class="border-t border-gray-100"></div>
+                                    <a href="/Login/Logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                        </svg>
+                                        Đăng xuất
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <a href="/Login" class="text-gray-700 hover:text-blue-600 transition duration-300">
+                                Đăng nhập
+                            </a>
+                            <a href="/Register" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
+                                Đăng ký
+                            </a>
+                        }
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden">
+                        <button id="mobile-menu-button" class="text-gray-700 hover:text-blue-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mobile menu -->
+                <div id="mobile-menu" class="md:hidden hidden pb-4">
+                    <a asp-controller="Worker" asp-action="Index" class="block py-2 text-gray-700 hover:text-blue-600">
+                        Tìm việc làm
+                    </a>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a asp-controller="Worker" asp-action="Wishlist" class="block py-2 text-gray-700 hover:text-blue-600">
+                            Danh sách yêu thích
+                        </a>
+                        <a asp-controller="Worker" asp-action="MyApplications" class="block py-2 text-gray-700 hover:text-blue-600">
+                            Đơn ứng tuyển của tôi
+                        </a>
+                        <a asp-controller="Worker" asp-action="Profile" class="block py-2 text-gray-700 hover:text-blue-600">
+                            Hồ sơ của tôi
+                        </a>
+                        <a asp-controller="Worker" asp-action="EditProfile" class="block py-2 text-gray-700 hover:text-blue-600">
+                            Chỉnh sửa hồ sơ
+                        </a>
+                        <a asp-controller="Worker" asp-action="ChangePassword" class="block py-2 text-gray-700 hover:text-blue-600">
+                            Đổi mật khẩu
+                        </a>
+                        <a href="/Login/Logout" class="block py-2 text-gray-700 hover:text-blue-600">
+                            Đăng xuất
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="/Login" class="block py-2 text-gray-700 hover:text-blue-600">
+                            Đăng nhập
+                        </a>
+                        <a href="/Register" class="block py-2 text-gray-700 hover:text-blue-600">
+                            Đăng ký
+                        </a>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+        <!-- Success/Error Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mx-4 mt-4" role="alert">
+                <span class="block sm:inline">@TempData["SuccessMessage"]</span>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mx-4 mt-4" role="alert">
+                <span class="block sm:inline">@TempData["ErrorMessage"]</span>
+            </div>
+        }
+
+        @RenderBody()
+    </main>
+
+    <footer class="bg-gray-800 text-white py-12 mt-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">SJOB</h3>
+                    <p class="text-gray-400">Tìm công việc mơ ước với nền tảng tuyển dụng tốt nhất.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Cho người tìm việc</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Tìm việc làm</a></li>
+                        <li><a href="#" class="hover:text-white">Tư vấn nghề nghiệp</a></li>
+                        <li><a href="#" class="hover:text-white">Tạo CV</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Cho nhà tuyển dụng</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Đăng tin tuyển dụng</a></li>
+                        <li><a href="#" class="hover:text-white">Tìm ứng viên</a></li>
+                        <li><a href="#" class="hover:text-white">Bảng giá</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Hỗ trợ</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Trung tâm trợ giúp</a></li>
+                        <li><a href="#" class="hover:text-white">Liên hệ</a></li>
+                        <li><a href="#" class="hover:text-white">Chính sách bảo mật</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 SJOB. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function () {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // User dropdown functionality
+        const userDropdownButton = document.getElementById('userDropdownButton');
+        const userDropdownMenu = document.getElementById('userDropdownMenu');
+        let dropdownTimeout;
+
+        if (userDropdownButton && userDropdownMenu) {
+            // Show dropdown on hover
+            userDropdownButton.addEventListener('mouseenter', function () {
+                clearTimeout(dropdownTimeout);
+                userDropdownMenu.classList.add('active');
+            });
+
+            // Keep dropdown open when hovering over menu
+            userDropdownMenu.addEventListener('mouseenter', function () {
+                clearTimeout(dropdownTimeout);
+                userDropdownMenu.classList.add('active');
+            });
+
+            // Hide dropdown when leaving button
+            userDropdownButton.addEventListener('mouseleave', function () {
+                dropdownTimeout = setTimeout(function () {
+                    userDropdownMenu.classList.remove('active');
+                }, 150);
+            });
+
+            // Hide dropdown when leaving menu
+            userDropdownMenu.addEventListener('mouseleave', function () {
+                dropdownTimeout = setTimeout(function () {
+                    userDropdownMenu.classList.remove('active');
+                }, 150);
+            });
+
+            // Toggle dropdown on click
+            userDropdownButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                userDropdownMenu.classList.toggle('active');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function (e) {
+                if (!userDropdownButton.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                    userDropdownMenu.classList.remove('active');
+                }
+            });
+        }
+
+        // Auto-hide success/error messages
+        setTimeout(function () {
+            const alerts = document.querySelectorAll('[role="alert"]');
+            alerts.forEach(function (alert) {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(function () {
+                    alert.remove();
+                }, 500);
+            });
+        }, 5000);
+
+        // Load badge counts if user is authenticated
+        @if (User.Identity.IsAuthenticated)
+        {
+            <text>
+                // Load wishlist count
+                fetch('/Worker/GetWishlistCount')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.count > 0) {
+                            document.getElementById('wishlist-badge').textContent = data.count;
+                            document.getElementById('wishlist-badge').classList.remove('hidden');
+                        }
+                    })
+                    .catch(error => console.log('Error loading wishlist count:', error));
+
+            // Load applications count
+            fetch('/Worker/GetApplicationsCount')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.count > 0) {
+                        document.getElementById('applications-badge').textContent = data.count;
+                        document.getElementById('applications-badge').classList.remove('hidden');
+                    }
+                })
+                .catch(error => console.log('Error loading applications count:', error));
+            </text>
+        }
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

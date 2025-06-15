@@ -1,0 +1,209 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SJOB Platform</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/employer.css" />
+    <link rel="stylesheet" href="~/css/customer-services.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+
+<style>
+    .job-card .row.mt-3.g-2 img {
+        max-width: 150px;
+        max-height: 150px;
+        padding-bottom: 30px;
+    }
+
+        .job-card .row.mt-3.g-2 img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+</style>
+
+<body>
+    <div class="employer-dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/JobPostManagement" class="logo">
+                    <img src="~/assets/img/noBackground.png" alt="SJOB Logo" />
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "JobPostManagement" && ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")">
+                        <a href="/JobPostManagement" class="nav-link">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Quản lý bài đăng</span>
+                        </a>
+                    </li>
+                    <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "JobPostManagement" && ViewContext.RouteData.Values["action"].ToString() == "Create" ? "active" : "")">
+                        <a href="/JobPostManagement/Create" class="nav-link">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Tạo bài đăng mới</span>
+                        </a>
+                    </li>
+                    <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Application" ? "active" : "")">
+                        <a href="/Applications" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            <span>Quản lý ứng viên</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-box-open"></i>
+                            <span>Quản lý dịch vụ</span>
+                        </a>
+                        <ul class="sub-menu">
+                            <li class="nav-item">
+                                <a href="/CustomerService/Index" class="nav-link">
+                                    <i class="fas fa-cart-plus"></i>
+                                    <span>Mua dịch vụ</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/CustomerService/UserPackages" class="nav-link">
+                                    <i class="fas fa-bag-shopping"></i>
+                                    <span>Dịch vụ của tôi</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/Employer/Profile" class="nav-link">
+                            <i class="fas fa-gear"></i>
+                            <span>Cài đặt tài khoản</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/HistoryTransaction/Index" class="nav-link">
+                            <i class="fas fa-clock-rotate-left"></i>
+                            <span>Lịch sử giao dịch</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <img src="/images/avatars/default.png" alt="User Avatar" class="user-avatar" />
+                    <div class="user-details">
+                        <span class="user-name">@User.Identity?.Name</span>
+                        <span class="user-role">Nhà tuyển dụng</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <div class="top-bar">
+                <div class="view-mode-selector">
+                    <span>Chế độ xem:</span>
+                    <select class="form-select" onchange="updateViewMode(this.value)">
+                        <option value="recruiter">Nhà tuyển dụng</option>
+                        <option value="admin">Quản trị viên</option>
+                    </select>
+                </div>
+
+                <div class="user-actions">
+                    <div class="balance-display">
+                        <span class="balance-amount">0 VNĐ</span>
+                        <a href="/Credit/Deposit" class="btn-deposit">
+                            <i class="fas fa-plus"></i> Nạp tiền
+                        </a>
+                    </div>
+
+                    <div class="user-dropdown dropdown">
+                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i>
+                            @User.Identity?.Name
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user"></i> Hồ sơ</a></li>
+                            <li><a class="dropdown-item" href="/Account/Settings"><i class="fas fa-cog"></i> Cài đặt</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/employer.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Toggle submenu
+            const menuItems = document.querySelectorAll('.sidebar-nav .nav-item');
+
+            menuItems.forEach(item => {
+                const link = item.querySelector('.nav-link');
+                const subMenu = item.querySelector('.sub-menu');
+
+                if (subMenu) {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        item.classList.toggle('expanded');
+
+                        const isExpanded = item.classList.contains('expanded');
+
+                        if (isExpanded) {
+                            subMenu.style.maxHeight = subMenu.scrollHeight + 'px';
+                        } else {
+                            subMenu.style.maxHeight = '0';
+                        }
+                    });
+
+                    // Auto expand if a child is active
+                    if (item.querySelector('.sub-menu .active')) {
+                        item.classList.add('expanded');
+                        subMenu.style.maxHeight = subMenu.scrollHeight + 'px';
+                    }
+                }
+            });
+
+            // Mobile sidebar toggle
+            const sidebarToggle = document.querySelector('.sidebar-toggle');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function () {
+                    document.querySelector('.employer-dashboard').classList.toggle('sidebar-collapsed');
+                });
+            }
+        });
+
+        function updateViewMode(mode) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('viewMode', mode);
+            window.location.href = url.toString();
+        }
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

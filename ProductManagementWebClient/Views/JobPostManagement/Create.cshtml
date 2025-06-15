@@ -1,0 +1,382 @@
+﻿@model BusinessObjects.DTOs.JobPost.JobPostCreateDto
+
+@{
+    ViewData["Title"] = "Tạo Tin Tuyển Dụng";
+    Layout = "~/Views/Shared/_JobPostManagementLayout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/customer-services.css" />
+
+<style>
+    .post-type-option.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        background-color: #f5f5f5;
+    }
+
+        .post-type-option.disabled label {
+            cursor: not-allowed;
+            color: #999;
+        }
+
+        .post-type-option.disabled .post-type-desc {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+    .post-type-selector {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .post-type-option {
+        flex: 1;
+        min-width: 200px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .post-type-option:hover {
+            border-color: #0ea5e9;
+        }
+
+        .post-type-option input[type="radio"] {
+            display: none;
+        }
+
+            .post-type-option input[type="radio"]:checked + label {
+                background-color: #f0f9ff;
+                border-color: #0ea5e9;
+            }
+
+        .post-type-option label {
+            display: block;
+            cursor: pointer;
+            text-align: center;
+        }
+
+    .post-type-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .post-type-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .post-type-desc {
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-header">
+        <h2><i class="fas fa-plus-circle"></i> @ViewData["Title"]</h2>
+    </div>
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-info-circle"></i> Thông tin cơ bản
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Title" class="form-label">
+                        <i class="fas fa-heading"></i> Tiêu đề
+                    </label>
+                    <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề tin tuyển dụng" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Location" class="form-label">
+                        <i class="fas fa-map-marker-alt"></i> Địa điểm
+                    </label>
+                    <input asp-for="Location" class="form-control" placeholder="Nhập địa điểm làm việc" />
+                    <span asp-validation-for="Location" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="JobType" class="form-label">
+                        <i class="fas fa-briefcase"></i> Hình thức làm việc
+                    </label>
+                    <select asp-for="JobType" class="form-control" required>
+                        <option value="">-- Chọn hình thức làm việc --</option>
+                        <option value="Toàn thời gian">Toàn thời gian</option>
+                        <option value="Bán thời gian">Bán thời gian</option>
+                    </select>
+                    <span asp-validation-for="JobType" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="ExperienceLevel" class="form-label">
+                        <i class="fas fa-star"></i> Kinh nghiệm
+                    </label>
+                    <select asp-for="ExperienceLevel" class="form-control" required>
+                        <option value="">-- Chọn mức kinh nghiệm --</option>
+                        <option value="Không cần kinh nghiệm">Không cần kinh nghiệm</option>
+                        <option value="Ít nhất 3 tháng kinh nghiệm">Ít nhất 3 tháng kinh nghiệm</option>
+                        <option value="Ít nhất 6 tháng kinh nghiệm">Ít nhất 6 tháng kinh nghiệm</option>
+                        <option value="Trên 1 năm kinh nghiệm">Trên 1 năm kinh nghiệm</option>
+                    </select>
+                    <span asp-validation-for="ExperienceLevel" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-tags"></i> Danh mục công việc
+                    </label>
+                    <select id="jobCategory" name="JobCategoryId" class="form-control" required>
+                        <option value="">-- Chọn danh mục công việc --</option>
+                    </select>
+                    <span class="text-danger" id="jobCategoryError"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="SalaryMin" class="form-label">
+                        <i class="fas fa-money-bill-wave"></i> Lương tối thiểu
+                    </label>
+                    <input asp-for="SalaryMin" class="form-control" placeholder="Nhập mức lương tối thiểu" />
+                    <span asp-validation-for="SalaryMin" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="SalaryMax" class="form-label">
+                        <i class="fas fa-money-bill-wave"></i> Lương tối đa
+                    </label>
+                    <input asp-for="SalaryMax" class="form-control" placeholder="Nhập mức lương tối đa" />
+                    <span asp-validation-for="SalaryMax" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Deadline" class="form-label">
+                        <i class="fas fa-calendar-alt"></i> Hạn nộp hồ sơ
+                    </label>
+                    <input asp-for="Deadline" class="form-control" type="date" />
+                    <span asp-validation-for="Deadline" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="PostType" class="form-label">
+                        <i class="fas fa-tag"></i> Loại tin
+                    </label>
+                    <div class="post-type-selector">
+                        <div class="post-type-option silver">
+                            <input type="radio" id="silver" name="PostType" value="silver" />
+                            <label for="silver">
+                                <span class="post-type-icon"><i class="fas fa-medal"></i></span>
+                                <span class="post-type-name">Tin Bạc</span>
+                                <span class="post-type-desc">Hiển thị cơ bản</span>
+                            </label>
+                        </div>
+                        <div class="post-type-option gold">
+                            <input type="radio" id="gold" name="PostType" value="gold" />
+                            <label for="gold">
+                                <span class="post-type-icon"><i class="fas fa-award"></i></span>
+                                <span class="post-type-name">Tin Vàng</span>
+                                <span class="post-type-desc">Hiển thị nổi bật</span>
+                            </label>
+                        </div>
+                        <div class="post-type-option diamond">
+                            <input type="radio" id="diamond" name="PostType" value="diamond" />
+                            <label for="diamond">
+                                <span class="post-type-icon"><i class="fas fa-gem"></i></span>
+                                <span class="post-type-name">Tin Kim Cương</span>
+                                <span class="post-type-desc">Ưu tiên cao nhất</span>
+                            </label>
+                        </div>
+                    </div>
+                    <span asp-validation-for="PostType" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-images"></i> Hình ảnh
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="ImageMain" class="form-label">
+                        <i class="fas fa-image"></i> Ảnh chính (bắt buộc)
+                    </label>
+                    <input type="file" class="form-control" id="ImageMainFile" name="ImageMainFile" accept="image/*" required />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-file-alt"></i> Nội dung chi tiết
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Description" class="form-label">
+                        <i class="fas fa-align-left"></i> Mô tả công việc
+                    </label>
+                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Mô tả chi tiết về công việc, trách nhiệm, vai trò..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Requirements" class="form-label">
+                        <i class="fas fa-list-check"></i> Yêu cầu ứng viên
+                    </label>
+                    <textarea asp-for="Requirements" class="form-control" rows="4" placeholder="Các kỹ năng, bằng cấp, kinh nghiệm yêu cầu..."></textarea>
+                    <span asp-validation-for="Requirements" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Benefits" class="form-label">
+                        <i class="fas fa-gift"></i> Phúc lợi
+                    </label>
+                    <textarea asp-for="Benefits" class="form-control" rows="4" placeholder="Các chế độ, phúc lợi dành cho nhân viên..."></textarea>
+                    <span asp-validation-for="Benefits" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-check-circle"></i> Tạo tin tuyển dụng
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const jobCategorySelect = document.getElementById('jobCategory');
+
+            // Load job categories
+            loadJobCategories();
+
+            function loadJobCategories() {
+                fetch('/JobPostManagement/GetJobCategories')
+                    .then(response => response.json())
+                    .then(categories => {
+                        populateJobCategories(categories);
+                    })
+                    .catch(error => {
+                        console.error('Error loading job categories:', error);
+                        // Fallback: tạo một số categories mẫu
+                        const sampleCategories = [
+                            { id: 1, name: 'Công nghệ thông tin', parentId: null },
+                            { id: 2, name: 'Lập trình viên', parentId: 1 },
+                            { id: 3, name: 'Thiết kế UI/UX', parentId: 1 },
+                            { id: 4, name: 'Kinh doanh', parentId: null },
+                            { id: 5, name: 'Bán hàng', parentId: 4 },
+                            { id: 6, name: 'Marketing', parentId: 4 }
+                        ];
+                        populateJobCategories(sampleCategories);
+                    });
+            }
+
+            function populateJobCategories(categories) {
+                // Tạo cấu trúc cây categories
+                const parentCategories = categories.filter(cat => !cat.parentId);
+                const childCategories = categories.filter(cat => cat.parentId);
+
+                parentCategories.forEach(parent => {
+                    // Thêm parent category
+                    const parentOption = document.createElement('option');
+                    parentOption.value = parent.id;
+                    parentOption.textContent = parent.name;
+                    parentOption.style.fontWeight = 'bold';
+                    jobCategorySelect.appendChild(parentOption);
+
+                    // Thêm child categories
+                    const children = childCategories.filter(child => child.parentId === parent.id);
+                    children.forEach(child => {
+                        const childOption = document.createElement('option');
+                        childOption.value = child.id;
+                        childOption.textContent = `── ${child.name}`;
+                        childOption.style.paddingLeft = '20px';
+                        jobCategorySelect.appendChild(childOption);
+                    });
+                });
+            }
+
+            // Handle post type credits
+            const silverCredits = @ViewBag.SilverCredits;
+            const goldCredits = @ViewBag.GoldCredits;
+            const diamondCredits = @ViewBag.DiamondCredits;
+
+            const silverOption = document.querySelector('.post-type-option.silver');
+            const goldOption = document.querySelector('.post-type-option.gold');
+            const diamondOption = document.querySelector('.post-type-option.diamond');
+            const silverRadio = document.getElementById('silver');
+            const goldRadio = document.getElementById('gold');
+            const diamondRadio = document.getElementById('diamond');
+
+            // Disable options without credits
+            if (silverCredits <= 0) {
+                silverOption.classList.add('disabled');
+                silverRadio.disabled = true;
+                silverOption.querySelector('.post-type-desc').textContent = 'Hết lượt';
+            } else {
+                silverOption.querySelector('.post-type-desc').textContent = `Còn ${silverCredits} lượt`;
+            }
+
+            if (goldCredits <= 0) {
+                goldOption.classList.add('disabled');
+                goldRadio.disabled = true;
+                goldOption.querySelector('.post-type-desc').textContent = 'Hết lượt';
+            } else {
+                goldOption.querySelector('.post-type-desc').textContent = `Còn ${goldCredits} lượt`;
+            }
+
+            if (diamondCredits <= 0) {
+                diamondOption.classList.add('disabled');
+                diamondRadio.disabled = true;
+                diamondOption.querySelector('.post-type-desc').textContent = 'Hết lượt';
+            } else {
+                diamondOption.querySelector('.post-type-desc').textContent = `Còn ${diamondCredits} lượt`;
+            }
+
+            // Auto select first available option
+            if (silverCredits > 0) {
+                silverRadio.checked = true;
+            } else if (goldCredits > 0) {
+                goldRadio.checked = true;
+            } else if (diamondCredits > 0) {
+                diamondRadio.checked = true;
+            }
+        });
+    </script>
+}

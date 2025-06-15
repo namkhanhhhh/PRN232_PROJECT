@@ -1,0 +1,91 @@
+﻿@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = "_AuthLayout";
+}
+
+<h2 class="auth-title">Đăng nhập</h2>
+<p class="auth-subtitle">Chào mừng bạn trở lại! Vui lòng đăng nhập vào tài khoản của bạn.</p>
+
+@if (ViewBag.SuccessMessage != null)
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle me-2"></i>
+        @ViewBag.SuccessMessage
+    </div>
+}
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+<form method="post" asp-controller="Login" asp-action="Index">
+    <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="Nhập email của bạn" required>
+    </div>
+
+    <div class="form-group">
+        <label for="password" class="form-label">Mật khẩu</label>
+        <div class="password-input-group">
+            <input type="password" class="form-control" id="password" name="password" placeholder="Nhập mật khẩu" required>
+            <button type="button" class="password-toggle" id="togglePassword">
+                <i class="bi bi-eye"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
+        <label class="form-check-label" for="rememberMe">Ghi nhớ đăng nhập</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-box-arrow-in-right me-2"></i>
+        Đăng nhập
+    </button>
+</form>
+
+<div class="auth-separator">
+    <span>hoặc</span>
+</div>
+
+<a href="@Url.Action("GoogleLogin")" class="btn btn-google">
+    <i class="bi bi-google me-2"></i>
+    Đăng nhập với Google
+</a>
+
+<div class="auth-links">
+    <div class="mb-2">
+        <a asp-controller="ForgotPassword" asp-action="ViewForgotPassword" class="text-decoration-none">
+            Quên mật khẩu?
+        </a>
+    </div>
+    <div>
+        Chưa có tài khoản? <a href="@Url.Action("Index", "Register")">Đăng ký ngay</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#password');
+
+            if (togglePassword && password) {
+                togglePassword.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                    password.setAttribute('type', type);
+
+                    // Toggle the icon
+                    const icon = this.querySelector('i');
+                    icon.classList.toggle('bi-eye');
+                    icon.classList.toggle('bi-eye-slash');
+                });
+            }
+        });
+    </script>
+}

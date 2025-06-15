@@ -1,0 +1,438 @@
+﻿@model BusinessObjects.DTOs.JobPostDto
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "_WorkerLayout";
+}
+
+<div class="bg-blue-50 py-6">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-wrap items-center text-sm text-gray-600">
+            <a asp-controller="Worker" asp-action="Index" class="hover:text-blue-600">Trang chủ</a>
+            <span class="mx-2">/</span>
+            @if (Model.Categories.Any())
+            {
+                <a asp-controller="Worker" asp-action="CategoryJobs" asp-route-id="@Model.Categories.First().Id" class="hover:text-blue-600">
+                    @Model.Categories.First().Name
+                </a>
+                <span class="mx-2">/</span>
+            }
+            <span class="text-gray-800">@Model.Title</span>
+        </div>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Main Content -->
+        <div class="lg:w-2/3">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h1 class="text-2xl font-bold text-gray-900">@Model.Title</h1>
+
+                    <div class="flex items-center">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-2">
+                            @Model.PostType
+                        </span>
+                        <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                            @Model.JobType
+                        </span>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-4 mb-6">
+                    <div class="flex items-center text-gray-600">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span>@Model.Location</span>
+                    </div>
+
+                    @if (Model.SalaryMin.HasValue || Model.SalaryMax.HasValue)
+                    {
+                        <div class="flex items-center text-gray-600">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>
+                                @if (Model.SalaryMin.HasValue && Model.SalaryMax.HasValue)
+                                {
+                                    <span>@Model.SalaryMin.Value.ToString("#,##0") - @Model.SalaryMax.Value.ToString("#,##0") VNĐ</span>
+                                }
+                                else if (Model.SalaryMin.HasValue)
+                                {
+                                    <span>Từ @Model.SalaryMin.Value.ToString("#,##0") VNĐ</span>
+                                }
+                                else if (Model.SalaryMax.HasValue)
+                                {
+                                    <span>Đến @Model.SalaryMax.Value.ToString("#,##0") VNĐ</span>
+                                }
+                            </span>
+                        </div>
+                    }
+
+                    <div class="flex items-center text-gray-600">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+
+                    <div class="flex items-center text-gray-600">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        <span>@Model.ViewCount lượt xem</span>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-6">
+                    <h2 class="text-xl font-semibold mb-4">Mô tả công việc</h2>
+                    <div class="prose max-w-none text-gray-700">
+                        @Html.Raw(Model.Description)
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-6 mt-6">
+                    <h2 class="text-xl font-semibold mb-4">Yêu cầu công việc</h2>
+                    <div class="prose max-w-none text-gray-700">
+                        @Html.Raw(Model.Requirements)
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Benefits))
+                {
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h2 class="text-xl font-semibold mb-4">Quyền lợi</h2>
+                        <div class="prose max-w-none text-gray-700">
+                            @Html.Raw(Model.Benefits)
+                        </div>
+                    </div>
+                }
+
+                <div class="border-t border-gray-200 pt-6 mt-6">
+                    <h2 class="text-xl font-semibold mb-4">Danh mục</h2>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach (var category in Model.Categories)
+                        {
+                            <a asp-controller="Worker" asp-action="CategoryJobs" asp-route-id="@category.Id"
+                               class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-full text-sm">
+                                @category.Name
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-6 mt-6 flex flex-wrap gap-4">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        @if (!Model.HasApplied)
+                        {
+                            <form asp-controller="Worker" asp-action="ApplyJob" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="jobId" value="@Model.Id" />
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+                                    Ứng tuyển ngay
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="bg-green-100 text-green-800 px-4 py-2 rounded-md flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>Bạn đã ứng tuyển công việc này</span>
+                            </div>
+                        }
+
+                        <button type="button" id="wishlist-toggle" class="border border-gray-300 hover:border-red-500 px-4 py-2 rounded-md flex items-center transition-colors duration-200"
+                                data-job-id="@Model.Id" data-is-in-wishlist="@Model.IsInWishlist.ToString().ToLower()">
+                            @if (Model.IsInWishlist)
+                            {
+                                <svg class="w-5 h-5 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Xóa khỏi danh sách yêu thích</span>
+                            }
+                            else
+                            {
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.682l-1.318-1.364a4.5 4.5 0 00-6.364 0z"></path>
+                                </svg>
+                                <span>Thêm vào danh sách yêu thích</span>
+                            }
+                        </button>
+                    }
+                    else
+                    {
+                        <a href="/Login" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+                            Đăng nhập để ứng tuyển
+                        </a>
+                    }
+
+                    <button type="button" id="share-button" class="border border-gray-300 hover:border-blue-500 px-4 py-2 rounded-md flex items-center transition-colors duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                        </svg>
+                        <span>Chia sẻ</span>
+                    </button>
+
+                    <!-- Hidden anti-forgery token for AJAX requests -->
+                    @Html.AntiForgeryToken()
+                </div>
+            </div>
+
+            @if (Model.RelatedJobs != null && Model.RelatedJobs.Any())
+            {
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4">Việc làm tương tự</h2>
+
+                    <div class="space-y-4">
+                        @foreach (var job in Model.RelatedJobs)
+                        {
+                            <div class="border-b border-gray-200 pb-4 last:border-b-0 last:pb-0">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-medium text-gray-900">
+                                        <a asp-controller="Worker" asp-action="JobDetails" asp-route-id="@job.Id" class="hover:text-blue-600">
+                                            @job.Title
+                                        </a>
+                                    </h3>
+                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                        @job.JobType
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center text-gray-500 text-sm mt-1">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    <span>@job.Location</span>
+                                </div>
+
+                                <div class="flex justify-between items-center mt-2">
+                                    <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center mr-2">
+                                            @if (!string.IsNullOrEmpty(job.EmployerAvatar))
+                                            {
+                                                <img src="@job.EmployerAvatar" alt="@job.EmployerName" class="w-6 h-6 rounded-full">
+                                            }
+                                            else
+                                            {
+                                                <span class="text-gray-600 font-semibold text-xs">@job.EmployerName.Substring(0, 1).ToUpper()</span>
+                                            }
+                                        </div>
+                                        <span class="text-xs text-gray-600">@job.EmployerName</span>
+                                    </div>
+
+                                    <a asp-controller="Worker" asp-action="JobDetails" asp-route-id="@job.Id" class="text-blue-600 hover:text-blue-800 text-sm">
+                                        Xem
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:w-1/3">
+            <!-- Company Info -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Thông tin công ty</h2>
+
+                <div class="flex items-center mb-4">
+                    <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mr-4">
+                        @if (!string.IsNullOrEmpty(Model.EmployerAvatar))
+                        {
+                            <img src="@Model.EmployerAvatar" alt="@Model.EmployerName" class="w-16 h-16 rounded-full">
+                        }
+                        else
+                        {
+                            <span class="text-gray-600 font-bold text-xl">@Model.EmployerName.Substring(0, 1).ToUpper()</span>
+                        }
+                    </div>
+
+                    <div>
+                        <h3 class="font-semibold text-gray-900">@Model.EmployerName</h3>
+                        @if (!string.IsNullOrEmpty(Model.CompanyName))
+                        {
+                            <p class="text-gray-600">@Model.CompanyName</p>
+                        }
+                    </div>
+                </div>
+
+                <a asp-controller="Worker" asp-action="EmployerProfile" asp-route-id="@Model.UserId"
+                   class="bg-gray-100 hover:bg-gray-200 text-gray-800 w-full py-2 rounded-md text-center block">
+                    Xem hồ sơ nhà tuyển dụng
+                </a>
+            </div>
+
+            <!-- Job Summary -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Tóm tắt công việc</h2>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Đăng ngày:</span>
+                        <span class="text-gray-900">@Model.CreatedAt.Value.ToString("dd/MM/yyyy")</span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Loại công việc:</span>
+                        <span class="text-gray-900">@Model.JobType</span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Địa điểm:</span>
+                        <span class="text-gray-900">@Model.Location</span>
+                    </div>
+
+                    @if (Model.SalaryMin.HasValue || Model.SalaryMax.HasValue)
+                    {
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Mức lương:</span>
+                            <span class="text-gray-900">
+                                @if (Model.SalaryMin.HasValue && Model.SalaryMax.HasValue)
+                                {
+                                    <span>@Model.SalaryMin.Value.ToString("#,##0") - @Model.SalaryMax.Value.ToString("#,##0") VNĐ</span>
+                                }
+                                else if (Model.SalaryMin.HasValue)
+                                {
+                                    <span>Từ @Model.SalaryMin.Value.ToString("#,##0") VNĐ</span>
+                                }
+                                else if (Model.SalaryMax.HasValue)
+                                {
+                                    <span>Đến @Model.SalaryMax.Value.ToString("#,##0") VNĐ</span>
+                                }
+                            </span>
+                        </div>
+                    }
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Lượt xem:</span>
+                        <span class="text-gray-900">@Model.ViewCount</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Wishlist toggle functionality
+        document.getElementById('wishlist-toggle').addEventListener('click', function () {
+            const jobId = this.getAttribute('data-job-id');
+            const isInWishlist = this.getAttribute('data-is-in-wishlist') === 'true';
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('jobId', jobId);
+
+            fetch('/Worker/ToggleWishlist', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        alert(data.error);
+                        return;
+                    }
+
+                    // Update the button state
+                    this.setAttribute('data-is-in-wishlist', data.isInWishlist);
+
+                    if (data.isInWishlist) {
+                        this.innerHTML = '<svg class="w-5 h-5 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg><span>Xóa khỏi danh sách yêu thích</span>';
+                        this.classList.add('border-red-500', 'text-red-600');
+                        this.classList.remove('border-gray-300');
+                    } else {
+                        this.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.682l-1.318-1.364a4.5 4.5 0 00-6.364 0z"></path></svg><span>Thêm vào danh sách yêu thích</span>';
+                        this.classList.remove('border-red-500', 'text-red-600');
+                        this.classList.add('border-gray-300');
+                    }
+
+                    // Show success message
+                    if (data.message) {
+                        // Create and show a temporary success message
+                        const successDiv = document.createElement('div');
+                        successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                        successDiv.textContent = data.message;
+                        document.body.appendChild(successDiv);
+
+                        setTimeout(() => {
+                            document.body.removeChild(successDiv);
+                        }, 3000);
+                    }
+
+                    // Update wishlist badge count if it exists
+                    updateWishlistBadge();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Đã xảy ra lỗi khi cập nhật danh sách yêu thích');
+                });
+        });
+
+        // Function to update wishlist badge count
+        function updateWishlistBadge() {
+            fetch('/Worker/GetWishlistCount', {
+                method: 'GET',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const wishlistBadge = document.getElementById('wishlist-badge');
+                    if (wishlistBadge) {
+                        if (data.count > 0) {
+                            wishlistBadge.textContent = data.count;
+                            wishlistBadge.classList.remove('hidden');
+                        } else {
+                            wishlistBadge.classList.add('hidden');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error updating wishlist badge:', error));
+        }
+
+        // Share button functionality
+        document.getElementById('share-button').addEventListener('click', function () {
+            if (navigator.share) {
+                navigator.share({
+                    title: '@Model.Title',
+                    text: 'Xem công việc này: @Model.Title',
+                    url: window.location.href
+                })
+                    .catch(error => console.error('Error sharing:', error));
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                const tempInput = document.createElement('input');
+                tempInput.value = window.location.href;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+
+                // Show copy success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
+                successDiv.textContent = 'Đã sao chép liên kết!';
+                document.body.appendChild(successDiv);
+
+                setTimeout(() => {
+                    document.body.removeChild(successDiv);
+                }, 3000);
+            }
+        });
+    </script>
+}

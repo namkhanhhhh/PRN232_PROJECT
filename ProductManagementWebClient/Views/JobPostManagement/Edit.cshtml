@@ -1,0 +1,141 @@
+﻿@model BusinessObjects.DTOs.JobPost.JobPostUpdateDto
+
+@{
+    ViewData["Title"] = "Chỉnh sửa bài đăng";
+    Layout = "~/Views/Shared/_JobPostManagementLayout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/customer-services.css" />
+
+<div class="form-container">
+    <div class="form-header">
+        <h2><i class="fas fa-edit"></i> @ViewData["Title"]</h2>
+    </div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-info-circle"></i> Thông tin cơ bản
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Title" class="form-label">
+                        <i class="fas fa-heading"></i> Tiêu đề
+                    </label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Location" class="form-label">
+                        <i class="fas fa-map-marker-alt"></i> Địa điểm
+                    </label>
+                    <input asp-for="Location" class="form-control" />
+                    <span asp-validation-for="Location" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="JobType" class="form-label">
+                        <i class="fas fa-briefcase"></i> Hình thức làm việc
+                    </label>
+                    <input asp-for="JobType" class="form-control" />
+                    <span asp-validation-for="JobType" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="ExperienceLevel" class="form-label">
+                        <i class="fas fa-star"></i> Kinh nghiệm
+                    </label>
+                    <input asp-for="ExperienceLevel" class="form-control" />
+                    <span asp-validation-for="ExperienceLevel" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="SalaryMin" class="form-label">
+                        <i class="fas fa-money-bill-wave"></i> Lương tối thiểu
+                    </label>
+                    <input asp-for="SalaryMin" class="form-control" />
+                    <span asp-validation-for="SalaryMin" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="SalaryMax" class="form-label">
+                        <i class="fas fa-money-bill-wave"></i> Lương tối đa
+                    </label>
+                    <input asp-for="SalaryMax" class="form-control" />
+                    <span asp-validation-for="SalaryMax" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Deadline" class="form-label">
+                        <i class="fas fa-calendar-alt"></i> Hạn nộp hồ sơ
+                    </label>
+                    <input asp-for="Deadline" class="form-control" type="date" />
+                    <span asp-validation-for="Deadline" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-tag"></i> Loại bài đăng
+                    </label>
+                    <input class="form-control" value="@Model.PostType" readonly />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-file-alt"></i> Nội dung chi tiết
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="Description" class="form-label">
+                    <i class="fas fa-align-left"></i> Mô tả công việc
+                </label>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Requirements" class="form-label">
+                        <i class="fas fa-list-check"></i> Yêu cầu ứng viên
+                    </label>
+                    <textarea asp-for="Requirements" class="form-control" rows="4"></textarea>
+                    <span asp-validationclass="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Benefits" class="form-label">
+                        <i class="fas fa-gift"></i> Phúc lợi
+                    </label>
+                    <textarea asp-for="Benefits" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Benefits" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Lưu thay đổi
+            </button>
+            <a href="@Url.Action("Index", "JobPostManagement")" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Hủy
+            </a>
+        </div>
+
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

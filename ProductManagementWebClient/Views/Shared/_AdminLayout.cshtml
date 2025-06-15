@@ -1,0 +1,607 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SJ Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #4895ef;
+            --primary-dark: #3f37c9;
+            --secondary-color: #4cc9f0;
+            --success-color: #4ade80;
+            --warning-color: #fbbf24;
+            --danger-color: #f87171;
+            --info-color: #60a5fa;
+            
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-sidebar: #1e293b;
+            --bg-sidebar-hover: #334155;
+            
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+            --header-height: 64px;
+            
+            --border-radius: 8px;
+            --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* Layout */
+        .layout-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-sidebar);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all var(--transition-speed) ease;
+            z-index: 1000;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-brand {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            height: var(--header-height);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-brand h2 {
+            color: white;
+            margin: 0 0 0 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .sidebar.collapsed .sidebar-brand h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu {
+            padding: 0;
+            list-style: none;
+            margin: 16px 0 0 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 4px;
+        }
+
+        .sidebar-menu .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: all var(--transition-speed) ease;
+            border-radius: 0;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+        }
+
+        .sidebar-menu .nav-link:hover,
+        .sidebar-menu .nav-link.active {
+            color: white;
+            background-color: var(--bg-sidebar-hover);
+        }
+
+        .sidebar-menu .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background-color: var(--primary-light);
+        }
+
+        .sidebar-menu .nav-link i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .sidebar-menu .nav-link span {
+            opacity: 0;
+            width: 0;
+            white-space: nowrap;
+        }
+
+        .sidebar-menu .nav-header {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 10px 20px;
+            font-weight: 500;
+            margin-top: 16px;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .sidebar.collapsed .sidebar-menu .nav-header {
+            opacity: 0;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: margin-left var(--transition-speed) ease;
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* Header */
+        .main-header {
+            height: var(--header-height);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--bg-primary);
+            box-shadow: var(--card-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-sidebar {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .toggle-sidebar:hover {
+            background-color: var(--bg-secondary);
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 0 16px;
+            color: var(--text-primary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-dropdown {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 40px;
+            transition: all var(--transition-speed) ease;
+            border: 1px solid transparent;
+        }
+
+        .user-info:hover {
+            background-color: var(--bg-secondary);
+            border-color: #e2e8f0;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .user-name {
+            font-weight: 500;
+            margin-right: 5px;
+            color: var(--text-primary);
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .user-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 240px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            display: none;
+            z-index: 1000;
+            margin-top: 10px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .user-dropdown.open .user-menu {
+            display: block;
+        }
+
+        .user-menu .user-header {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .user-menu .user-body {
+            padding: 8px 0;
+        }
+
+        .user-menu .user-item {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            color: var(--text-primary);
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .user-menu .user-item:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        .user-menu .user-item i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .user-menu .user-footer {
+            padding: 12px 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .user-menu .btn-logout {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-speed) ease;
+            background-color: #fee2e2;
+            color: #ef4444;
+            border: none;
+        }
+
+        .user-menu .btn-logout:hover {
+            background-color: #fecaca;
+        }
+
+        .user-menu .btn-logout i {
+            margin-right: 8px;
+        }
+
+        /* Content Area */
+        .content-wrapper {
+            padding: 24px;
+            flex: 1;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+            background-color: var(--bg-primary);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background-color: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header .card-title {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Tables */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-top: none;
+            padding: 12px 16px;
+            background-color: var(--bg-secondary);
+            white-space: nowrap;
+        }
+
+        .table td {
+            vertical-align: middle;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            border-color: #e2e8f0;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,0.01);
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: var(--border-radius);
+            padding: 8px 16px;
+            font-weight: 500;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .btn-info {
+            background-color: var(--info-color);
+            border-color: var(--info-color);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.35em 0.65em;
+            font-weight: 500;
+            border-radius: 30px;
+        }
+
+        .badge-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-info {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-primary {
+            background-color: #e0e7ff;
+            color: #3730a3;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h2>SJ Admin</h2>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li>
+                    <a asp-controller="Home" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Home" && ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="nav-header">QUẢN LÝ</li>
+
+                <li>
+                    <a asp-controller="Account" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Account" ? "active" : "")">
+                        <i class="bi bi-people"></i>
+                        <span>Quản lý người dùng</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <div class="toggle-sidebar" id="toggleSidebar">
+                        <i class="bi bi-list"></i>
+                    </div>
+                    <h1 class="page-title">@ViewData["Title"]</h1>
+                </div>
+                
+                <div class="header-right">
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                <i class="bi bi-person"></i>
+                            </div>
+                            <div class="user-details">
+                                <div class="user-name">@User.Identity.Name</div>
+                                <div class="user-role">Administrator</div>
+                            </div>
+                            <i class="bi bi-chevron-down ms-2"></i>
+                        </div>
+
+                        <div class="user-menu">
+                            <div class="user-header">
+                                <div class="user-avatar mx-auto mb-2" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <h6 class="mb-0">@User.Identity.Name</h6>
+                                <small>Administrator</small>
+                            </div>
+                            <div class="user-body">
+                                <a asp-controller="Account" asp-action="Profile" class="user-item">
+                                    <i class="bi bi-person"></i>
+                                    <span>Hồ sơ cá nhân</span>
+                                </a>
+                                <a asp-controller="Account" asp-action="ChangePassword" class="user-item">
+                                    <i class="bi bi-shield-lock"></i>
+                                    <span>Đổi mật khẩu</span>
+                                </a>
+                            </div>
+                            <div class="user-footer">
+                                <a asp-controller="Login" asp-action="Logout" class="btn btn-logout">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Đăng xuất</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="content-wrapper">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Toggle sidebar
+            const toggleSidebar = document.getElementById('toggleSidebar');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            
+            if (sidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+            }
+
+            if (toggleSidebar) {
+                toggleSidebar.addEventListener('click', function () {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                    
+                    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+                    
+                    sidebar.classList.toggle('show');
+                });
+            }
+
+            // User dropdown
+            const userDropdown = document.getElementById('userDropdown');
+            if (userDropdown) {
+                userDropdown.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    this.classList.toggle('open');
+                });
+
+                document.addEventListener('click', function () {
+                    userDropdown.classList.remove('open');
+                });
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Đặt lại mật khẩu thành công";
+    Layout = "_AuthLayout";
+}
+
+<div class="text-center">
+    <div class="mb-4">
+        <i class="bi bi-check-circle display-1 text-success"></i>
+    </div>
+
+    <h2 class="auth-title">Đặt lại mật khẩu thành công!</h2>
+    <p class="auth-subtitle">
+        Mật khẩu của bạn đã được đặt lại thành công. Bạn có thể đăng nhập bằng mật khẩu mới.
+    </p>
+
+    <div class="alert alert-success">
+        <i class="bi bi-info-circle me-2"></i>
+        @TempData["SuccessMessage"]
+    </div>
+
+    <div class="mt-4">
+        <a href="@Url.Action("Index", "Login")" class="btn btn-primary">
+            <i class="bi bi-box-arrow-in-right me-2"></i>
+            Đăng nhập ngay
+        </a>
+    </div>
+</div>
