@@ -74,6 +74,10 @@ namespace DataAccess.DAO
                 existingJobPost.ExperienceLevel = jobPost.ExperienceLevel;
                 existingJobPost.Deadline = jobPost.Deadline;
                 existingJobPost.Status = jobPost.Status;
+                existingJobPost.ImageMain = jobPost.ImageMain;
+                existingJobPost.Image2 = jobPost.Image2;
+                existingJobPost.Image3 = jobPost.Image3;
+                existingJobPost.Image4 = jobPost.Image4;
 
                 await _context.SaveChangesAsync();
                 return true;
@@ -151,6 +155,64 @@ namespace DataAccess.DAO
             return await _context.JobCategories
                 .Where(c => c.ParentId == null)
                 .ToListAsync();
+        }
+
+        public async Task<UserPostCredit?> GetUserPostCreditsAsync(int userId)
+        {
+            return await _context.UserPostCredits
+                .FirstOrDefaultAsync(upc => upc.UserId == userId);
+        }
+
+        public async Task<bool> DeductPostCreditAsync(int userId, string postType)
+        {
+            try
+            {
+                var userPostCredit = await _context.UserPostCredits
+                    .FirstOrDefaultAsync(upc => upc.UserId == userId);
+
+                if (userPostCredit == null)
+                {
+                    // Create default credits if not exists
+                    userPostCredit = new UserPostCredit
+                    {
+                        UserId = userId,
+                        SilverPostsAvailable = 0,
+                        GoldPostsAvailable = 0,
+                        DiamondPostsAvailable = 0,
+                        AuthenLogoAvailable = 0,
+                        PushToTopAvailable = 0,
+                        LastUpdated = DateTime.Now
+                    };
+                    _context.UserPostCredits.Add(userPostCredit);
+                }
+
+                // Deduct based on post type
+                switch (postType.ToLower())
+                {
+                    case "silver":
+                        if (userPostCredit.SilverPostsAvailable <= 0) return false;
+                        userPostCredit.SilverPostsAvailable--;
+                        break;
+                    case "gold":
+                        if (userPostCredit.GoldPostsAvailable <= 0) return false;
+                        userPostCredit.GoldPostsAvailable--;
+                        break;
+                    case "diamond":
+                        if (userPostCredit.DiamondPostsAvailable <= 0) return false;
+                        userPostCredit.DiamondPostsAvailable--;
+                        break;
+                    default:
+                        return false;
+                }
+
+                userPostCredit.LastUpdated = DateTime.Now;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

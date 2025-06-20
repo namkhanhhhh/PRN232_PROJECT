@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using BusinessObjects.DTOs.Credit;
+using BusinessObjects.DTOs;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
+using ProductManagementWebClient.Helpers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -12,11 +15,14 @@ namespace MVCClient.Controllers
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
+        private readonly ApiHelper _apiHelper;
 
-        public LoginController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+
+        public LoginController(IHttpClientFactory httpClientFactory, IConfiguration configuration, ApiHelper apiHelper)
         {
             _httpClient = httpClientFactory.CreateClient();
             _configuration = configuration;
+            _apiHelper = apiHelper;
         }
 
         [HttpGet]
@@ -70,11 +76,14 @@ namespace MVCClient.Controllers
                         int userId = user.GetProperty("id").GetInt32();
                         string username = user.GetProperty("username").GetString() ?? "";
                         string roleName = user.GetProperty("roleName").GetString() ?? "";
+                        var balanceResponse = await _apiHelper.GetAsync<ApiResponseDto<UserCreditDto>>($"api/EmployerApi/balance/{userId}");
+                        int credit = (int)balanceResponse.Data.Balance;
 
                         // Lưu vào session
                         HttpContext.Session.SetInt32("UserId", userId);
                         HttpContext.Session.SetString("Username", username);
                         HttpContext.Session.SetString("Role", roleName);
+                        HttpContext.Session.SetInt32("credit", credit);
 
                         // Lưu JWT token
                         if (result.TryGetProperty("token", out JsonElement tokenElement))
@@ -90,7 +99,7 @@ namespace MVCClient.Controllers
                         return roleName.ToLower() switch
                         {
                             "admin" => RedirectToAction("Index", "Account"),
-                            "employer" => RedirectToAction("Index", "JobPostManagement"),
+                            "employer" => RedirectToAction("Index", "JobPostManagement"), // Thay đổi từ JobPostManagement sang Employer
                             "worker" => RedirectToAction("Index", "Worker"),
                             "customer" => RedirectToAction("SelectRole", "Customer"),
                             _ => RedirectToAction("Index", "Home") // Default to Home instead of SelectRole
@@ -154,7 +163,6 @@ namespace MVCClient.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Call API for external login
             var externalLoginData = new
             {
                 Email = email,
@@ -180,6 +188,9 @@ namespace MVCClient.Controllers
                 int userId = user.GetProperty("id").GetInt32();
                 string username = user.GetProperty("username").GetString() ?? "";
                 string roleName = user.GetProperty("roleName").GetString() ?? "";
+                var balanceResponse = await _apiHelper.GetAsync<ApiResponseDto<UserCreditDto>>($"api/EmployerApi/balance/{userId}");
+                int credit = (int)balanceResponse.Data.Balance;
+                HttpContext.Session.SetInt32("credit", credit);
 
                 // Lưu vào session
                 HttpContext.Session.SetInt32("UserId", userId);
@@ -200,7 +211,7 @@ namespace MVCClient.Controllers
                 return roleName.ToLower() switch
                 {
                     "admin" => RedirectToAction("Index", "Account"),
-                    "employer" => RedirectToAction("Index", "JobPostManagement"),
+                    "employer" => RedirectToAction("Index", "JobPostManagement"), // Thay đổi từ JobPostManagement sang Employer
                     "worker" => RedirectToAction("Index", "Worker"),
                     "customer" => RedirectToAction("SelectRole", "Customer"),
                     _ => RedirectToAction("Index", "Home") // Default to Home instead of SelectRole
@@ -220,12 +231,8 @@ namespace MVCClient.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            // Xóa session
             HttpContext.Session.Clear();
-
-            // Xóa authentication cookie
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
             return RedirectToAction("Index");
         }
 

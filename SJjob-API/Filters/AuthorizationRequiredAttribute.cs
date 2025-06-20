@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace SJOB_EXE201.Filters
+namespace Sjob_API.Filters
 {
     public class AuthorizationRequiredAttribute : AuthorizeAttribute, IAuthorizationFilter
     {

@@ -3,6 +3,7 @@ using BusinessObjects.DTOs.Authen;
 using BusinessObjects.DTOs.JobPost;
 using BusinessObjects.DTOs.Worker;
 using BusinessObjects.DTOs.Customer;
+using BusinessObjects.DTOs.Employer;
 using BusinessObjects.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -53,6 +54,9 @@ namespace Sjob_API.Controllers
                     ExperienceLevel = jp.ExperienceLevel,
                     Deadline = jp.Deadline,
                     ImageMain = jp.ImageMain,
+                    Image2 = jp.Image2,
+                    Image3 = jp.Image3,
+                    Image4 = jp.Image4,
                     PostType = jp.PostType,
                     Status = jp.Status,
                     ViewCount = jp.ViewCount,
@@ -76,6 +80,68 @@ namespace Sjob_API.Controllers
                 {
                     Success = false,
                     Message = $"Error retrieving job posts: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpGet("user-credits/{userId}")]
+        [Authorize(Roles = "Employer,Admin")]
+        public async Task<ActionResult<ApiResponseDto<UserPostCreditsDto>>> GetUserPostCredits(int userId)
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                var currentUserRole = GetCurrentUserRole();
+
+                if (currentUserRole != "Admin" && currentUserId != userId)
+                {
+                    return Forbid();
+                }
+
+                var userPostCredits = await _jobPostManagementRepository.GetUserPostCreditsAsync(userId);
+
+                if (userPostCredits == null)
+                {
+                    // Return default credits if not found
+                    return Ok(new ApiResponseDto<UserPostCreditsDto>
+                    {
+                        Success = true,
+                        Data = new UserPostCreditsDto
+                        {
+                            SilverPostsAvailable = 0,
+                            GoldPostsAvailable = 0,
+                            DiamondPostsAvailable = 0,
+                            AuthenLogoAvailable = 0,
+                            PushToTopAvailable = 0,
+                            LastUpdated = DateTime.Now
+                        },
+                        Message = "User post credits retrieved successfully"
+                    });
+                }
+
+                var creditsDto = new UserPostCreditsDto
+                {
+                    SilverPostsAvailable = userPostCredits.SilverPostsAvailable,
+                    GoldPostsAvailable = userPostCredits.GoldPostsAvailable,
+                    DiamondPostsAvailable = userPostCredits.DiamondPostsAvailable,
+                    AuthenLogoAvailable = userPostCredits.AuthenLogoAvailable,
+                    PushToTopAvailable = userPostCredits.PushToTopAvailable,
+                    LastUpdated = userPostCredits.LastUpdated
+                };
+
+                return Ok(new ApiResponseDto<UserPostCreditsDto>
+                {
+                    Success = true,
+                    Data = creditsDto,
+                    Message = "User post credits retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDto<UserPostCreditsDto>
+                {
+                    Success = false,
+                    Message = $"Error retrieving user post credits: {ex.Message}"
                 });
             }
         }
@@ -109,6 +175,9 @@ namespace Sjob_API.Controllers
                     ExperienceLevel = jobPost.ExperienceLevel,
                     Deadline = jobPost.Deadline,
                     ImageMain = jobPost.ImageMain,
+                    Image2 = jobPost.Image2,
+                    Image3 = jobPost.Image3,
+                    Image4 = jobPost.Image4,
                     PostType = jobPost.PostType,
                     Status = jobPost.Status,
                     ViewCount = jobPost.ViewCount,
@@ -156,6 +225,17 @@ namespace Sjob_API.Controllers
                 if (jobPostDto.UserId != currentUserId)
                 {
                     return Forbid();
+                }
+
+                // Check if user has enough credits
+                var canDeduct = await _jobPostManagementRepository.DeductPostCreditAsync(currentUserId, jobPostDto.PostType);
+                if (!canDeduct)
+                {
+                    return BadRequest(new ApiResponseDto<bool>
+                    {
+                        Success = false,
+                        Message = $"Không đủ lượt đăng bài loại {jobPostDto.PostType}. Vui lòng mua thêm gói dịch vụ."
+                    });
                 }
 
                 var jobPost = new JobPost
@@ -347,5 +427,13 @@ namespace Sjob_API.Controllers
             var roleClaim = User.FindFirst(ClaimTypes.Role);
             return roleClaim?.Value ?? "";
         }
+    }
+
+    public class AddCreditTransactionDto
+    {
+        public int UserId { get; set; }
+        public decimal Amount { get; set; }
+        public string TransactionType { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
     }
 }

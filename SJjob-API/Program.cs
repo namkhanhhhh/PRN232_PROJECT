@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
 using Repository.Implementations;
 using Repository.Interfaces;
 using Sjob_API.Services;
+using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,6 +66,25 @@ builder.Services.AddCors(options =>
         });
 });
 
+builder.Services.AddSingleton<PayOS>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var clientId = configuration["Environment:PAYOS_CLIENT_ID"];
+    var apiKey = configuration["Environment:PAYOS_API_KEY"];
+    var checksumKey = configuration["Environment:PAYOS_CHECKSUM_KEY"];
+
+    if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(checksumKey))
+    {
+        throw new Exception("PayOS configuration is missing. Please check appsettings.json");
+    }
+
+    return new PayOS(clientId, apiKey, checksumKey);
+});
+
+
+// Add PayOS Service
+builder.Services.AddScoped<PayOSService>();
+
 // Register DAO
 builder.Services.AddScoped<UserDAO>();
 builder.Services.AddScoped<JobPostDAO>();
@@ -72,6 +93,9 @@ builder.Services.AddScoped<ApplicationDAO>();
 builder.Services.AddScoped<WorkerVisitDAO>();
 builder.Services.AddScoped<CustomerDAO>();
 builder.Services.AddScoped<JobPostManagementDAO>();
+builder.Services.AddScoped<EmployerDAO>();
+builder.Services.AddScoped<ApplicationManagementDAO>();
+builder.Services.AddScoped<CreditDAO>();
 
 // Register Repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -81,10 +105,12 @@ builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 builder.Services.AddScoped<IJobPostRepository, JobPostRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IJobPostManagementRepository, JobPostManagementRepository>();
+builder.Services.AddScoped<IEmployerRepository, EmployerRepository>();
+builder.Services.AddScoped<IApplicationManagementRepository, ApplicationManagementRepository>();
+builder.Services.AddScoped<ICreditRepository, CreditRepository>();
 
-builder.Services.AddScoped<EmailService>(); // Thêm dòng này
 
-// Register Services
+builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<JwtService>();
 
 // Configure JWT Authentication
@@ -119,6 +145,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -130,7 +157,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
-
+app.UseAuthentication(); // Add this line
 app.UseAuthorization();
 
 app.MapControllers();

@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -21,6 +23,67 @@
         .job-card .row.mt-3.g-2 img:hover {
             transform: scale(1.05);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+    .top-bar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 15px 20px;
+        background: #fff;
+        border-bottom: 1px solid #e9ecef;
+        gap: 15px;
+    }
+
+    .balance-display {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .balance-amount {
+        background: #28a745;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 14px;
+        min-width: 80px;
+        text-align: center;
+    }
+
+    .btn-deposit {
+        background: #dc3545;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: background-color 0.2s;
+    }
+
+        .btn-deposit:hover {
+            background: #c82333;
+            color: white;
+            text-decoration: none;
+        }
+
+    .user-dropdown .btn {
+        background: transparent;
+        border: 1px solid #dee2e6;
+        color: #495057;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+        .user-dropdown .btn:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
         }
 </style>
 
@@ -47,8 +110,8 @@
                             <span>Tạo bài đăng mới</span>
                         </a>
                     </li>
-                    <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Application" ? "active" : "")">
-                        <a href="/Applications" class="nav-link">
+                    <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "ApplicationManagement" ? "active" : "")">
+                        <a href="/ApplicationManagement" class="nav-link">
                             <i class="fas fa-users"></i>
                             <span>Quản lý ứng viên</span>
                         </a>
@@ -80,7 +143,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="/HistoryTransaction/Index" class="nav-link">
+                        <a href="/Employer/History" class="nav-link">
                             <i class="fas fa-clock-rotate-left"></i>
                             <span>Lịch sử giao dịch</span>
                         </a>
@@ -101,34 +164,41 @@
 
         <main class="main-wrapper">
             <div class="top-bar">
-                <div class="view-mode-selector">
-                    <span>Chế độ xem:</span>
-                    <select class="form-select" onchange="updateViewMode(this.value)">
-                        <option value="recruiter">Nhà tuyển dụng</option>
-                        <option value="admin">Quản trị viên</option>
-                    </select>
+                <div class="balance-display">
+                    <span class="balance-amount">
+                        @{
+                            var userId = Context.Session.GetInt32("UserId");
+                            var credit = HttpContextAccessor.HttpContext.Session.GetInt32("credit");
+                            if (userId != null)
+                                {
+                                var balance = credit ?? 0;
+                                    var formattedBalance = ((decimal)balance).ToString("N0", new System.Globalization.CultureInfo("vi-VN"));
+                                    @formattedBalance
+                                }
+                                else
+                                {
+                                    @:0
+                                } 
+                        } CD
+                    </span>
+                    <a href="/Credit/Deposit" class="btn-deposit">
+                        <i class="fas fa-plus"></i> Nạp tiền
+                    </a>
                 </div>
 
-                <div class="user-actions">
-                    <div class="balance-display">
-                        <span class="balance-amount">0 VNĐ</span>
-                        <a href="/Credit/Deposit" class="btn-deposit">
-                            <i class="fas fa-plus"></i> Nạp tiền
-                        </a>
-                    </div>
-
-                    <div class="user-dropdown dropdown">
-                        <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user"></i>
-                            @User.Identity?.Name
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user"></i> Hồ sơ</a></li>
-                            <li><a class="dropdown-item" href="/Account/Settings"><i class="fas fa-cog"></i> Cài đặt</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
-                        </ul>
-                    </div>
+                <div class="user-dropdown dropdown">
+                    <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user"></i>
+                        @User.Identity?.Name
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/Employer/Profile"><i class="fas fa-user"></i> Hồ sơ</a></li>
+                        <li><a class="dropdown-item" href="/Employer/EditProfile"><i class="fas fa-edit"></i> Chỉnh sửa thông tin</a></li>
+                        <li><a class="dropdown-item" href="/Employer/ChangePassword"><i class="fas fa-key"></i> Đổi mật khẩu</a></li>
+                        <li><a class="dropdown-item" href="/Employer/History"><i class="fas fa-history"></i> Lịch sử</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/Login/Logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
+                    </ul>
                 </div>
             </div>
 
@@ -202,6 +272,14 @@
             url.searchParams.set('viewMode', mode);
             window.location.href = url.toString();
         }
+
+        // Refresh balance after payment
+        window.addEventListener('focus', function () {
+            // Reload page to get updated balance
+            if (document.referrer.includes('/Credit/')) {
+                location.reload();
+            }
+        });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

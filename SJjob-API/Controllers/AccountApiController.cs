@@ -7,7 +7,7 @@ using BusinessObjects.Models;
 using Org.BouncyCastle.Crypto.Generators;
 using BusinessObjects.DTOs.Authen;
 
-namespace WebAPI.Controllers
+namespace Sjob_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

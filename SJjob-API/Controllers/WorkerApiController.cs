@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Repository.Interfaces;
 using System.Security.Claims;
 
-namespace WebAPI.Controllers
+namespace Sjob_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

@@ -11,5 +11,7 @@ namespace Repository.Interfaces
         Task<bool> DeleteJobPostAsync(int id);
         Task<bool> AddCreditTransactionAsync(int userId, decimal amount, string transactionType, string description);
         Task<List<JobCategory>> GetJobCategoriesAsync();
+        Task<UserPostCredit?> GetUserPostCreditsAsync(int userId);
+        Task<bool> DeductPostCreditAsync(int userId, string postType);
     }
 }

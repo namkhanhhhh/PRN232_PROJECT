@@ -47,5 +47,15 @@ namespace Repository.Implementations
         {
             return await _jobPostManagementDAO.GetJobCategoriesAsync();
         }
+
+        public async Task<UserPostCredit?> GetUserPostCreditsAsync(int userId)
+        {
+            return await _jobPostManagementDAO.GetUserPostCreditsAsync(userId);
+        }
+
+        public async Task<bool> DeductPostCreditAsync(int userId, string postType)
+        {
+            return await _jobPostManagementDAO.DeductPostCreditAsync(userId, postType);
+        }
     }
 }

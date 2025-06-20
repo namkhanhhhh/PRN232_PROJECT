@@ -38,7 +38,6 @@ namespace BusinessObjects.DTOs.JobPost
         public DateOnly? Deadline { get; set; }
 
         [Required(ErrorMessage = "Main image is required")]
-        [StringLength(255, ErrorMessage = "Image path cannot exceed 255 characters")]
         public string ImageMain { get; set; } = string.Empty;
 
         [StringLength(255, ErrorMessage = "Image path cannot exceed 255 characters")]

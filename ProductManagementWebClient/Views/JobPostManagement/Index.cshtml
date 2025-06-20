@@ -37,11 +37,13 @@
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
+        cursor: pointer;
     }
 
         .filter-tab:hover {
             background-color: #e2e8f0;
             color: #334155;
+            text-decoration: none;
         }
 
         .filter-tab.active {
@@ -228,6 +230,26 @@
         padding: 1.5rem;
     }
 
+    .job-images {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .job-image {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+    }
+
+        .job-image.main {
+            width: 120px;
+            height: 90px;
+        }
+
     .job-details {
         display: flex;
         flex-direction: column;
@@ -332,37 +354,37 @@
     <!-- Filter Section -->
     <div class="filter-section">
         <div class="filter-tabs">
-            <a href="@Url.Action("Index", new { status = "all", search = ViewBag.CurrentSearch, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate })"
-               class="filter-tab @(ViewBag.CurrentStatus == "all" ? "active" : "")">
+            <a href="@Url.Action("Index", new { status = "all", search = ViewBag.CurrentSearch, fromDate = ViewBag.CurrentFromDate, toDate = ViewBag.CurrentToDate })"
+               class="filter-tab @(ViewBag.CurrentStatus == "all" ? "active" : "")" data-status="all">
                 <i class="fas fa-list"></i>
                 Tất cả bài đăng
                 <span class="count">@ViewBag.AllCount</span>
             </a>
-            <a href="@Url.Action("Index", new { status = "active", search = ViewBag.CurrentSearch, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate })"
-               class="filter-tab @(ViewBag.CurrentStatus == "active" ? "active" : "")">
+            <a href="@Url.Action("Index", new { status = "active", search = ViewBag.CurrentSearch, fromDate = ViewBag.CurrentFromDate, toDate = ViewBag.CurrentToDate })"
+               class="filter-tab @(ViewBag.CurrentStatus == "active" ? "active" : "")" data-status="active">
                 <i class="fas fa-check-circle"></i>
                 Bài đăng đang hoạt động
                 <span class="count">@ViewBag.ActiveCount</span>
             </a>
-            <a href="@Url.Action("Index", new { status = "inactive", search = ViewBag.CurrentSearch, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate })"
-               class="filter-tab @(ViewBag.CurrentStatus == "inactive" ? "active" : "")">
+            <a href="@Url.Action("Index", new { status = "inactive", search = ViewBag.CurrentSearch, fromDate = ViewBag.CurrentFromDate, toDate = ViewBag.CurrentToDate })"
+               class="filter-tab @(ViewBag.CurrentStatus == "inactive" ? "active" : "")" data-status="inactive">
                 <i class="fas fa-eye-slash"></i>
                 Bài đăng bị ẩn
                 <span class="count">@ViewBag.InactiveCount</span>
             </a>
-            <a href="@Url.Action("Index", new { status = "expired", search = ViewBag.CurrentSearch, fromDate = ViewBag.FromDate, toDate = ViewBag.ToDate })"
-               class="filter-tab @(ViewBag.CurrentStatus == "expired" ? "active" : "")">
+            <a href="@Url.Action("Index", new { status = "expired", search = ViewBag.CurrentSearch, fromDate = ViewBag.CurrentFromDate, toDate = ViewBag.CurrentToDate })"
+               class="filter-tab @(ViewBag.CurrentStatus == "expired" ? "active" : "")" data-status="expired">
                 <i class="fas fa-calendar-times"></i>
                 Bài đăng hết hạn
                 <span class="count">@ViewBag.ExpiredCount</span>
             </a>
         </div>
 
-        <form method="get" class="filter-controls">
-            <input type="hidden" name="status" value="@ViewBag.CurrentStatus" />
+        <form method="get" class="filter-controls" id="filterForm">
+            <input type="hidden" name="status" value="@ViewBag.CurrentStatus" id="statusInput" />
             <input type="text" name="search" value="@ViewBag.CurrentSearch" placeholder="Tìm theo tiêu đề" class="search-input" />
-            <input type="date" name="fromDate" value="@ViewBag.FromDate" class="date-input" />
-            <input type="date" name="toDate" value="@ViewBag.ToDate" class="date-input" />
+            <input type="date" name="fromDate" value="@ViewBag.CurrentFromDate" class="date-input" />
+            <input type="date" name="toDate" value="@ViewBag.CurrentToDate" class="date-input" />
             <button type="submit" class="filter-btn">
                 <i class="fas fa-filter"></i>
                 Lọc
@@ -447,6 +469,26 @@
                         </div>
                     </div>
                     <div class="job-card-body">
+                        <!-- Job Images -->
+                        <div class="job-images">
+                            @if (!string.IsNullOrEmpty(post.ImageMain))
+                            {
+                                <img src="@post.ImageMain" alt="Ảnh chính" class="job-image main" />
+                            }
+                            @if (!string.IsNullOrEmpty(post.Image2))
+                            {
+                                <img src="@post.Image2" alt="Ảnh 2" class="job-image" />
+                            }
+                            @if (!string.IsNullOrEmpty(post.Image3))
+                            {
+                                <img src="@post.Image3" alt="Ảnh 3" class="job-image" />
+                            }
+                            @if (!string.IsNullOrEmpty(post.Image4))
+                            {
+                                <img src="@post.Image4" alt="Ảnh 4" class="job-image" />
+                            }
+                        </div>
+
                         <div class="job-description mb-3">@post.Description</div>
 
                         <div class="job-details">
@@ -506,3 +548,31 @@
         }
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Handle filter tab clicks
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const statusInput = document.getElementById('statusInput');
+        const filterForm = document.getElementById('filterForm');
+
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Remove active class from all tabs
+                filterTabs.forEach(t => t.classList.remove('active'));
+
+                // Add active class to clicked tab
+                this.classList.add('active');
+
+                // Update the hidden status input
+                const status = this.getAttribute('data-status');
+                statusInput.value = status;
+
+                // Submit the form to apply the filter
+                filterForm.submit();
+            });
+        });
+    });
+</script>

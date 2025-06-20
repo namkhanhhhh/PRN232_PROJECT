@@ -37,10 +37,12 @@
         border-radius: 8px;
         padding: 1rem;
         transition: all 0.3s ease;
+        cursor: pointer;
     }
 
-        .post-type-option:hover {
+        .post-type-option:hover:not(.disabled) {
             border-color: #0ea5e9;
+            transform: translateY(-2px);
         }
 
         .post-type-option input[type="radio"] {
@@ -56,6 +58,7 @@
             display: block;
             cursor: pointer;
             text-align: center;
+            margin: 0;
         }
 
     .post-type-icon {
@@ -75,6 +78,81 @@
         font-size: 0.9rem;
         color: #64748b;
     }
+
+    .form-control.is-invalid {
+        border-color: #dc3545;
+    }
+
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .file-upload-error {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: none;
+    }
+
+    .error-summary {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        margin-bottom: 1rem;
+    }
+
+        .error-summary ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+    .image-upload-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .image-upload-item {
+        border: 2px dashed #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+        .image-upload-item:hover {
+            border-color: #0ea5e9;
+            background-color: #f8fafc;
+        }
+
+        .image-upload-item.main {
+            grid-column: 1;
+        }
+
+    .image-upload-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+
+    .image-upload-input {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.875rem;
+    }
+
+    .image-upload-hint {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
 </style>
 
 <div class="form-container">
@@ -82,8 +160,23 @@
         <h2><i class="fas fa-plus-circle"></i> @ViewData["Title"]</h2>
     </div>
 
-    <form asp-action="Create" method="post" enctype="multipart/form-data">
+    <form id="jobPostForm" asp-action="Create" method="post" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
+
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+        {
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i> @ViewBag.ErrorMessage
+            </div>
+        }
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="error-summary">
+                <h6><i class="fas fa-exclamation-circle"></i> Vui lòng sửa các lỗi sau:</h6>
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+        }
 
         <div class="form-section">
             <div class="form-section-title">
@@ -93,20 +186,22 @@
             <div class="form-row">
                 <div class="form-group">
                     <label asp-for="Title" class="form-label">
-                        <i class="fas fa-heading"></i> Tiêu đề
+                        <i class="fas fa-heading"></i> Tiêu đề <span class="text-danger">*</span>
                     </label>
-                    <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề tin tuyển dụng" />
+                    <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề tin tuyển dụng" maxlength="255" required />
                     <span asp-validation-for="Title" class="text-danger"></span>
+                    <small class="form-text text-muted">Tối đa 255 ký tự</small>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label asp-for="Location" class="form-label">
-                        <i class="fas fa-map-marker-alt"></i> Địa điểm
+                        <i class="fas fa-map-marker-alt"></i> Địa điểm <span class="text-danger">*</span>
                     </label>
-                    <input asp-for="Location" class="form-control" placeholder="Nhập địa điểm làm việc" />
+                    <input asp-for="Location" class="form-control" placeholder="Nhập địa điểm làm việc" maxlength="255" required />
                     <span asp-validation-for="Location" class="text-danger"></span>
+                    <small class="form-text text-muted">Tối đa 255 ký tự</small>
                 </div>
             </div>
 
@@ -115,10 +210,12 @@
                     <label asp-for="JobType" class="form-label">
                         <i class="fas fa-briefcase"></i> Hình thức làm việc
                     </label>
-                    <select asp-for="JobType" class="form-control" required>
+                    <select asp-for="JobType" class="form-control">
                         <option value="">-- Chọn hình thức làm việc --</option>
                         <option value="Toàn thời gian">Toàn thời gian</option>
                         <option value="Bán thời gian">Bán thời gian</option>
+                        <option value="Thực tập">Thực tập</option>
+                        <option value="Freelance">Freelance</option>
                     </select>
                     <span asp-validation-for="JobType" class="text-danger"></span>
                 </div>
@@ -127,7 +224,7 @@
                     <label asp-for="ExperienceLevel" class="form-label">
                         <i class="fas fa-star"></i> Kinh nghiệm
                     </label>
-                    <select asp-for="ExperienceLevel" class="form-control" required>
+                    <select asp-for="ExperienceLevel" class="form-control">
                         <option value="">-- Chọn mức kinh nghiệm --</option>
                         <option value="Không cần kinh nghiệm">Không cần kinh nghiệm</option>
                         <option value="Ít nhất 3 tháng kinh nghiệm">Ít nhất 3 tháng kinh nghiệm</option>
@@ -140,30 +237,18 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-tags"></i> Danh mục công việc
-                    </label>
-                    <select id="jobCategory" name="JobCategoryId" class="form-control" required>
-                        <option value="">-- Chọn danh mục công việc --</option>
-                    </select>
-                    <span class="text-danger" id="jobCategoryError"></span>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
                     <label asp-for="SalaryMin" class="form-label">
-                        <i class="fas fa-money-bill-wave"></i> Lương tối thiểu
+                        <i class="fas fa-money-bill-wave"></i> Lương tối thiểu (VNĐ)
                     </label>
-                    <input asp-for="SalaryMin" class="form-control" placeholder="Nhập mức lương tối thiểu" />
+                    <input asp-for="SalaryMin" class="form-control" type="number" min="0" placeholder="0" />
                     <span asp-validation-for="SalaryMin" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="SalaryMax" class="form-label">
-                        <i class="fas fa-money-bill-wave"></i> Lương tối đa
+                        <i class="fas fa-money-bill-wave"></i> Lương tối đa (VNĐ)
                     </label>
-                    <input asp-for="SalaryMax" class="form-control" placeholder="Nhập mức lương tối đa" />
+                    <input asp-for="SalaryMax" class="form-control" type="number" min="0" placeholder="0" />
                     <span asp-validation-for="SalaryMax" class="text-danger"></span>
                 </div>
             </div>
@@ -173,18 +258,18 @@
                     <label asp-for="Deadline" class="form-label">
                         <i class="fas fa-calendar-alt"></i> Hạn nộp hồ sơ
                     </label>
-                    <input asp-for="Deadline" class="form-control" type="date" />
+                    <input asp-for="Deadline" class="form-control" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
                     <span asp-validation-for="Deadline" class="text-danger"></span>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label asp-for="PostType" class="form-label">
-                        <i class="fas fa-tag"></i> Loại tin
+                    <label class="form-label">
+                        <i class="fas fa-tag"></i> Loại tin <span class="text-danger">*</span>
                     </label>
                     <div class="post-type-selector">
-                        <div class="post-type-option silver">
+                        <div class="post-type-option silver" data-credits="@ViewBag.SilverCredits">
                             <input type="radio" id="silver" name="PostType" value="silver" />
                             <label for="silver">
                                 <span class="post-type-icon"><i class="fas fa-medal"></i></span>
@@ -192,7 +277,7 @@
                                 <span class="post-type-desc">Hiển thị cơ bản</span>
                             </label>
                         </div>
-                        <div class="post-type-option gold">
+                        <div class="post-type-option gold" data-credits="@ViewBag.GoldCredits">
                             <input type="radio" id="gold" name="PostType" value="gold" />
                             <label for="gold">
                                 <span class="post-type-icon"><i class="fas fa-award"></i></span>
@@ -200,7 +285,7 @@
                                 <span class="post-type-desc">Hiển thị nổi bật</span>
                             </label>
                         </div>
-                        <div class="post-type-option diamond">
+                        <div class="post-type-option diamond" data-credits="@ViewBag.DiamondCredits">
                             <input type="radio" id="diamond" name="PostType" value="diamond" />
                             <label for="diamond">
                                 <span class="post-type-icon"><i class="fas fa-gem"></i></span>
@@ -219,14 +304,48 @@
                 <i class="fas fa-images"></i> Hình ảnh
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="ImageMain" class="form-label">
-                        <i class="fas fa-image"></i> Ảnh chính (bắt buộc)
+            <div class="image-upload-grid">
+                <div class="image-upload-item main">
+                    <label for="ImageMainFile" class="image-upload-label">
+                        <i class="fas fa-image"></i> Ảnh chính
                     </label>
-                    <input type="file" class="form-control" id="ImageMainFile" name="ImageMainFile" accept="image/*" required />
+                    <input type="file" class="image-upload-input" id="ImageMainFile" name="ImageMainFile" accept="image/*" />
+                    <div class="image-upload-hint">Ảnh đại diện cho bài đăng</div>
+                    <div id="imageMainError" class="file-upload-error"></div>
+                </div>
+
+                <div class="image-upload-item">
+                    <label for="Image2File" class="image-upload-label">
+                        <i class="fas fa-image"></i> Ảnh 2
+                    </label>
+                    <input type="file" class="image-upload-input" id="Image2File" name="Image2File" accept="image/*" />
+                    <div class="image-upload-hint">Ảnh bổ sung (tùy chọn)</div>
+                    <div id="image2Error" class="file-upload-error"></div>
+                </div>
+
+                <div class="image-upload-item">
+                    <label for="Image3File" class="image-upload-label">
+                        <i class="fas fa-image"></i> Ảnh 3
+                    </label>
+                    <input type="file" class="image-upload-input" id="Image3File" name="Image3File" accept="image/*" />
+                    <div class="image-upload-hint">Ảnh bổ sung (tùy chọn)</div>
+                    <div id="image3Error" class="file-upload-error"></div>
+                </div>
+
+                <div class="image-upload-item">
+                    <label for="Image4File" class="image-upload-label">
+                        <i class="fas fa-image"></i> Ảnh 4
+                    </label>
+                    <input type="file" class="image-upload-input" id="Image4File" name="Image4File" accept="image/*" />
+                    <div class="image-upload-hint">Ảnh bổ sung (tùy chọn)</div>
+                    <div id="image4Error" class="file-upload-error"></div>
                 </div>
             </div>
+
+            <small class="form-text text-muted mt-2">
+                <i class="fas fa-info-circle"></i>
+                Chấp nhận file: JPG, PNG, GIF. Kích thước tối đa: 5MB mỗi ảnh. Nếu không tải ảnh chính, hệ thống sẽ sử dụng ảnh mặc định.
+            </small>
         </div>
 
         <div class="form-section">
@@ -237,9 +356,9 @@
             <div class="form-row">
                 <div class="form-group">
                     <label asp-for="Description" class="form-label">
-                        <i class="fas fa-align-left"></i> Mô tả công việc
+                        <i class="fas fa-align-left"></i> Mô tả công việc <span class="text-danger">*</span>
                     </label>
-                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Mô tả chi tiết về công việc, trách nhiệm, vai trò..."></textarea>
+                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Mô tả chi tiết về công việc, trách nhiệm, vai trò..." required></textarea>
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
             </div>
@@ -249,22 +368,23 @@
                     <label asp-for="Requirements" class="form-label">
                         <i class="fas fa-list-check"></i> Yêu cầu ứng viên
                     </label>
-                    <textarea asp-for="Requirements" class="form-control" rows="4" placeholder="Các kỹ năng, bằng cấp, kinh nghiệm yêu cầu..."></textarea>
+                    <textarea asp-for="Requirements" class="form-control" rows="4" placeholder="Các kỹ năng, bằng cấp, kinh nghiệm yêu cầu..." maxlength="500"></textarea>
                     <span asp-validation-for="Requirements" class="text-danger"></span>
+                    <small class="form-text text-muted">Tối đa 500 ký tự</small>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="Benefits" class="form-label">
                         <i class="fas fa-gift"></i> Phúc lợi
                     </label>
-                    <textarea asp-for="Benefits" class="form-control" rows="4" placeholder="Các chế độ, phúc lợi dành cho nhân viên..."></textarea>
+                    <textarea asp-for="Benefits" class="form-control" rows="4" placeholder="Các chế độ, phúc lợi dành cho nhân viên..." maxlength="500"></textarea>
                     <span asp-validation-for="Benefits" class="text-danger"></span>
+                    <small class="form-text text-muted">Tối đa 500 ký tự</small>
                 </div>
             </div>
         </div>
 
         <div class="form-actions">
-            <div asp-validation-summary="All" class="text-danger"></div>
             <button type="submit" class="btn btn-success">
                 <i class="fas fa-check-circle"></i> Tạo tin tuyển dụng
             </button>
@@ -279,104 +399,113 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/js/employer.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const jobCategorySelect = document.getElementById('jobCategory');
-
-            // Load job categories
-            loadJobCategories();
-
-            function loadJobCategories() {
-                fetch('/JobPostManagement/GetJobCategories')
-                    .then(response => response.json())
-                    .then(categories => {
-                        populateJobCategories(categories);
-                    })
-                    .catch(error => {
-                        console.error('Error loading job categories:', error);
-                        // Fallback: tạo một số categories mẫu
-                        const sampleCategories = [
-                            { id: 1, name: 'Công nghệ thông tin', parentId: null },
-                            { id: 2, name: 'Lập trình viên', parentId: 1 },
-                            { id: 3, name: 'Thiết kế UI/UX', parentId: 1 },
-                            { id: 4, name: 'Kinh doanh', parentId: null },
-                            { id: 5, name: 'Bán hàng', parentId: 4 },
-                            { id: 6, name: 'Marketing', parentId: 4 }
-                        ];
-                        populateJobCategories(sampleCategories);
-                    });
-            }
-
-            function populateJobCategories(categories) {
-                // Tạo cấu trúc cây categories
-                const parentCategories = categories.filter(cat => !cat.parentId);
-                const childCategories = categories.filter(cat => cat.parentId);
-
-                parentCategories.forEach(parent => {
-                    // Thêm parent category
-                    const parentOption = document.createElement('option');
-                    parentOption.value = parent.id;
-                    parentOption.textContent = parent.name;
-                    parentOption.style.fontWeight = 'bold';
-                    jobCategorySelect.appendChild(parentOption);
-
-                    // Thêm child categories
-                    const children = childCategories.filter(child => child.parentId === parent.id);
-                    children.forEach(child => {
-                        const childOption = document.createElement('option');
-                        childOption.value = child.id;
-                        childOption.textContent = `── ${child.name}`;
-                        childOption.style.paddingLeft = '20px';
-                        jobCategorySelect.appendChild(childOption);
-                    });
-                });
-            }
-
             // Handle post type credits
             const silverCredits = @ViewBag.SilverCredits;
             const goldCredits = @ViewBag.GoldCredits;
             const diamondCredits = @ViewBag.DiamondCredits;
 
+            // Update descriptions with credit counts
+            updatePostTypeDescriptions(silverCredits, goldCredits, diamondCredits);
+
+            // Auto select first available option
+            if (silverCredits > 0) {
+                document.getElementById('silver').checked = true;
+            } else if (goldCredits > 0) {
+                document.getElementById('gold').checked = true;
+            } else if (diamondCredits > 0) {
+                document.getElementById('diamond').checked = true;
+            }
+
+            // Add click handlers for post type options
+            document.querySelectorAll('.post-type-option').forEach(option => {
+                option.addEventListener('click', function () {
+                    if (!this.classList.contains('disabled')) {
+                        const radio = this.querySelector('input[type="radio"]');
+                        radio.checked = true;
+                    }
+                });
+            });
+
+            // File upload validation for all image inputs
+            const imageInputs = ['ImageMainFile', 'Image2File', 'Image3File', 'Image4File'];
+            const errorDivs = ['imageMainError', 'image2Error', 'image3Error', 'image4Error'];
+
+            imageInputs.forEach((inputId, index) => {
+                const input = document.getElementById(inputId);
+                const errorDiv = document.getElementById(errorDivs[index]);
+
+                input.addEventListener('change', function (e) {
+                    validateImageFile(e.target, errorDiv);
+                });
+            });
+        });
+
+        function validateImageFile(input, errorDiv) {
+            const file = input.files[0];
+
+            // Clear previous errors
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+            input.classList.remove('is-invalid');
+
+            if (file) {
+                let hasError = false;
+                let errorMessage = '';
+
+                // Check file size (5MB = 5 * 1024 * 1024 bytes)
+                if (file.size > 5 * 1024 * 1024) {
+                    hasError = true;
+                    errorMessage = 'Kích thước file không được vượt quá 5MB';
+                }
+
+                // Check file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!hasError && !allowedTypes.includes(file.type)) {
+                    hasError = true;
+                    errorMessage = 'Chỉ chấp nhận file ảnh: JPG, PNG, GIF';
+                }
+
+                if (hasError) {
+                    errorDiv.textContent = errorMessage;
+                    errorDiv.style.display = 'block';
+                    input.classList.add('is-invalid');
+                    input.value = '';
+                    return;
+                }
+            }
+        }
+
+        function updatePostTypeDescriptions(silverCredits, goldCredits, diamondCredits) {
             const silverOption = document.querySelector('.post-type-option.silver');
             const goldOption = document.querySelector('.post-type-option.gold');
             const diamondOption = document.querySelector('.post-type-option.diamond');
-            const silverRadio = document.getElementById('silver');
-            const goldRadio = document.getElementById('gold');
-            const diamondRadio = document.getElementById('diamond');
 
-            // Disable options without credits
             if (silverCredits <= 0) {
                 silverOption.classList.add('disabled');
-                silverRadio.disabled = true;
                 silverOption.querySelector('.post-type-desc').textContent = 'Hết lượt';
+                document.getElementById('silver').disabled = true;
             } else {
                 silverOption.querySelector('.post-type-desc').textContent = `Còn ${silverCredits} lượt`;
             }
 
             if (goldCredits <= 0) {
                 goldOption.classList.add('disabled');
-                goldRadio.disabled = true;
                 goldOption.querySelector('.post-type-desc').textContent = 'Hết lượt';
+                document.getElementById('gold').disabled = true;
             } else {
                 goldOption.querySelector('.post-type-desc').textContent = `Còn ${goldCredits} lượt`;
             }
 
             if (diamondCredits <= 0) {
                 diamondOption.classList.add('disabled');
-                diamondRadio.disabled = true;
                 diamondOption.querySelector('.post-type-desc').textContent = 'Hết lượt';
+                document.getElementById('diamond').disabled = true;
             } else {
                 diamondOption.querySelector('.post-type-desc').textContent = `Còn ${diamondCredits} lượt`;
             }
-
-            // Auto select first available option
-            if (silverCredits > 0) {
-                silverRadio.checked = true;
-            } else if (goldCredits > 0) {
-                goldRadio.checked = true;
-            } else if (diamondCredits > 0) {
-                diamondRadio.checked = true;
-            }
-        });
+        }
     </script>
 }
