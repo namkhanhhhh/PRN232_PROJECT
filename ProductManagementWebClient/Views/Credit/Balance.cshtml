@@ -1,0 +1,106 @@
+﻿@model BusinessObjects.DTOs.Credit.UserCreditDto
+@{
+    ViewData["Title"] = "Số dư ví";
+    Layout = "~/Views/Shared/_JobPostManagementLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-wallet mr-2"></i>
+                        Thông tin ví
+                    </h3>
+                    <div class="card-tools">
+                        <a href="@Url.Action("Deposit", "Credit")" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus mr-1"></i>
+                            Nạp tiền
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box bg-gradient-success">
+                                <span class="info-box-icon">
+                                    <i class="fas fa-coins"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Số dư hiện tại</span>
+                                    <span class="info-box-number">
+                                        @Model.Balance.ToString("N0") VNĐ
+                                    </span>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width: 100%"></div>
+                                    </div>
+                                    <span class="progress-description">
+                                        Cập nhật lần cuối: @Model.LastUpdated?.ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box bg-gradient-info">
+                                <span class="info-box-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Trạng thái ví</span>
+                                    <span class="info-box-number">
+                                        @(Model.Balance > 0 ? "Hoạt động" : "Cần nạp tiền")
+                                    </span>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width: @(Model.Balance > 0 ? "100" : "0")%"></div>
+                                    </div>
+                                    <span class="progress-description">
+                                        @(Model.Balance > 0 ? "Sẵn sàng sử dụng" : "Vui lòng nạp tiền để sử dụng dịch vụ")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">Thao tác nhanh</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <a href="@Url.Action("Deposit", "Credit")" class="btn btn-primary btn-block">
+                                                <i class="fas fa-plus-circle mr-2"></i>
+                                                Nạp tiền
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a href="@Url.Action("Transactions", "Credit")" class="btn btn-info btn-block">
+                                                <i class="fas fa-history mr-2"></i>
+                                                Lịch sử giao dịch
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a href="@Url.Action("Create", "JobPostManagement")" class="btn btn-success btn-block">
+                                                <i class="fas fa-briefcase mr-2"></i>
+                                                Đăng tin tuyển dụng
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <a href="@Url.Action("Index", "CustomerService")" class="btn btn-warning btn-block">
+                                                <i class="fas fa-shopping-cart mr-2"></i>
+                                                Mua gói dịch vụ
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

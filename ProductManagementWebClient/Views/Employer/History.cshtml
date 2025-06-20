@@ -1,0 +1,269 @@
+﻿@model BusinessObjects.DTOs.Employer.EmployerHistoryDto
+@{
+    ViewData["Title"] = "Lịch sử giao dịch";
+    Layout = "~/Views/Shared/_JobPostManagementLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Lịch sử giao dịch
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-tabs" id="historyTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="jobposts-tab" data-bs-toggle="tab" data-bs-target="#jobposts" type="button" role="tab">
+                                <i class="fas fa-briefcase me-1"></i>
+                                Tin đăng tuyển (@Model.JobPosts.Count)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="services-tab" data-bs-toggle="tab" data-bs-target="#services" type="button" role="tab">
+                                <i class="fas fa-shopping-cart me-1"></i>
+                                Dịch vụ đã mua (@Model.ServiceOrders.Count)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab">
+                                <i class="fas fa-credit-card me-1"></i>
+                                Giao dịch tài chính (@Model.CreditTransactions.Count)
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content mt-3" id="historyTabContent">
+                        <!-- Job Posts Tab -->
+                        <div class="tab-pane fade show active" id="jobposts" role="tabpanel">
+                            @if (Model.JobPosts.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Tiêu đề</th>
+                                                <th>Loại tin</th>
+                                                <th>Trạng thái</th>
+                                                <th>Lượt xem</th>
+                                                <th>Ứng viên</th>
+                                                <th>Ngày tạo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var job in Model.JobPosts)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <div class="fw-bold">@job.Title</div>
+                                                        <small class="text-muted">@job.Location</small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-@(job.PostType?.ToLower() == "diamond" ? "warning" : job.PostType?.ToLower() == "gold" ? "success" : "secondary")">
+                                                            @job.PostType
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-@(job.Status?.ToLower() == "active" ? "success" : "secondary")">
+                                                            @job.Status
+                                                        </span>
+                                                    </td>
+                                                    <td>@job.ViewCount</td>
+                                                    <td>@job.ApplicationCount</td>
+                                                    <td>@job.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Chưa có tin đăng tuyển nào</p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Services Tab -->
+                        <div class="tab-pane fade" id="services" role="tabpanel">
+                            @if (Model.ServiceOrders.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Dịch vụ</th>
+                                                <th>Giá</th>
+                                                <th>Trạng thái</th>
+                                                <th>Ngày bắt đầu</th>
+                                                <th>Ngày kết thúc</th>
+                                                <th>Ngày mua</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var service in Model.ServiceOrders)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <div class="fw-bold">@service.ServiceName</div>
+                                                        @if (service.DiamondPostsApplied > 0 || service.GoldPostsApplied > 0 || service.SilverPostsApplied > 0)
+                                                        {
+                                                            <small class="text-muted">
+                                                                @if (service.DiamondPostsApplied > 0)
+                                                                {
+                                                                    <span>Kim cương: @service.DiamondPostsApplied</span>
+                                                                }
+                                                                @if (service.GoldPostsApplied > 0)
+                                                                {
+                                                                    <span>Vàng: @service.GoldPostsApplied</span>
+                                                                }
+                                                                @if (service.SilverPostsApplied > 0)
+                                                                {
+                                                                    <span>Bạc: @service.SilverPostsApplied</span>
+                                                                }
+                                                            </small>
+                                                        }
+                                                    </td>
+                                                    <td>@service.Price.ToString("N0") VNĐ</td>
+                                                    <td>
+                                                        <span class="badge bg-@(service.Status?.ToLower() == "active" ? "success" : "secondary")">
+                                                            @service.Status
+                                                        </span>
+                                                    </td>
+                                                    <td>@service.StartDate?.ToString("dd/MM/yyyy")</td>
+                                                    <td>@service.EndDate?.ToString("dd/MM/yyyy")</td>
+                                                    <td>@service.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Chưa có dịch vụ nào được mua</p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Credit Transactions Tab -->
+                        <div class="tab-pane fade" id="transactions" role="tabpanel">
+                            @if (Model.CreditTransactions.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Mô tả</th>
+                                                <th>Loại giao dịch</th>
+                                                <th>Số tiền</th>
+                                                <th>Số dư sau GD</th>
+                                                <th>Thời gian</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var transaction in Model.CreditTransactions)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <div class="fw-bold">@transaction.Description</div>
+                                                    </td>
+                                                    <td>
+                                                        @{
+                                                            var badgeClass = transaction.TransactionType?.ToLower() switch
+                                                            {
+                                                                "deposit" => "bg-success",
+                                                                "purchase" => "bg-danger",
+                                                                "refund" => "bg-info",
+                                                                _ => "bg-secondary"
+                                                            };
+                                                            var displayType = transaction.TransactionType?.ToLower() switch
+                                                            {
+                                                                "deposit" => "Nạp tiền",
+                                                                "purchase" => "Mua dịch vụ",
+                                                                "refund" => "Hoàn tiền",
+                                                                _ => transaction.TransactionType
+                                                            };
+                                                        }
+                                                        <span class="badge @badgeClass">@displayType</span>
+                                                    </td>
+                                                    <td>
+                                                        @{
+                                                            var amountClass = transaction.Amount >= 0 ? "text-success" : "text-danger";
+                                                            var amountPrefix = transaction.Amount >= 0 ? "+" : "";
+                                                        }
+                                                        <span class="@amountClass fw-bold">
+                                                            @amountPrefix@transaction.Amount.ToString("N0") CD
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fw-bold">@transaction.BalanceAfter.ToString("N0") CD</span>
+                                                    </td>
+                                                    <td>@transaction.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Chưa có giao dịch tài chính nào</p>
+                                    <a href="/Credit/Deposit" class="btn btn-primary">
+                                        <i class="fas fa-plus me-1"></i>
+                                        Nạp tiền ngay
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nav-tabs .nav-link {
+        color: #6c757d;
+        border: none;
+        border-bottom: 2px solid transparent;
+        background: none;
+    }
+
+        .nav-tabs .nav-link.active {
+            color: #0d6efd;
+            border-bottom-color: #0d6efd;
+            background: none;
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-bottom-color: #dee2e6;
+        }
+
+    .table th {
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+</style>

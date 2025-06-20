@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Thanh toán thành công";
+    Layout = "~/Views/Shared/_JobPostManagementLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h2 class="text-success mb-3">Thanh toán thành công!</h2>
+                    
+                    <p class="lead mb-4">
+                        Giao dịch nạp tiền của bạn đã được xử lý thành công. 
+                        Số tiền đã được cộng vào ví của bạn.
+                    </p>
+
+                    <div class="alert alert-success">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Bạn có thể sử dụng số tiền trong ví để đăng tin tuyển dụng hoặc mua các gói dịch vụ.
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="@Url.Action("Balance", "Credit")" class="btn btn-primary mr-2">
+                            <i class="fas fa-wallet mr-2"></i>
+                            Xem số dư ví
+                        </a>
+                        <a href="@Url.Action("Transactions", "Credit")" class="btn btn-outline-primary mr-2">
+                            <i class="fas fa-history mr-2"></i>
+                            Lịch sử giao dịch
+                        </a>
+                        <a href="@Url.Action("Index", "JobPostManagement")" class="btn btn-outline-secondary">
+                            <i class="fas fa-briefcase mr-2"></i>
+                            Quản lý tin đăng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

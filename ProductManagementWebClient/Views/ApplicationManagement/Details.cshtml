@@ -1,0 +1,510 @@
+﻿@model BusinessObjects.DTOs.Application.ApplicationDetailDto
+@{
+    ViewData["Title"] = "Chi tiết ứng viên";
+    Layout = "_JobPostManagementLayout";
+}
+
+<div class="content-container">
+    <div class="page-header">
+        <div>
+            <a href="@Url.Action("Index", "ApplicationManagement")" class="btn btn-sm btn-outline-secondary mb-2">
+                <i class="fas fa-arrow-left"></i> Quay lại
+            </a>
+            <h1>Chi tiết đơn ứng tuyển</h1>
+        </div>
+        <div class="action-buttons">
+            <a href="@Url.Action("JobStats", "ApplicationManagement", new { id = Model.JobPostId })" class="btn btn-outline-info">
+                <i class="fas fa-chart-bar"></i> Thống kê bài đăng
+            </a>
+        </div>
+    </div>
+
+    <div class="application-details">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card applicant-card">
+                    <div class="card-body">
+                        <div class="applicant-header">
+                            <img src="@(string.IsNullOrEmpty(Model.WorkerAvatar) ? "/images/avatars/default.png" : Model.WorkerAvatar)"
+                                 alt="@Model.WorkerName" class="applicant-avatar" />
+                            <div>
+                                <h3 class="applicant-name">@Model.WorkerName</h3>
+                                <p class="applicant-headline">@(Model.WorkerHeadline ?? "Ứng viên")</p>
+                            </div>
+                        </div>
+
+                        <div class="applicant-status">
+                            <span class="status-label">Trạng thái:</span>
+                            <span class="status-badge status-@Model.Status">
+                                @(Model.Status == "pending" ? "Đang chờ" :
+                                    Model.Status == "accepted" ? "Đã chấp nhận" :
+                                    Model.Status == "rejected" ? "Đã từ chối" : Model.Status)
+                            </span>
+                        </div>
+
+                        <div class="applicant-info-list">
+                            <div class="info-item">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <span class="info-label">Email</span>
+                                    <span class="info-value">@Model.WorkerEmail</span>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.WorkerPhone))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-phone"></i>
+                                    <div>
+                                        <span class="info-label">Số điện thoại</span>
+                                        <span class="info-value">@Model.WorkerPhone</span>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.WorkerAddress))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <div>
+                                        <span class="info-label">Địa chỉ</span>
+                                        <span class="info-value">@Model.WorkerAddress</span>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.WorkerExperienceYears != null)
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-briefcase"></i>
+                                    <div>
+                                        <span class="info-label">Kinh nghiệm</span>
+                                        <span class="info-value">@Model.WorkerExperienceYears năm</span>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.WorkerEducation))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    <div>
+                                        <span class="info-label">Học vấn</span>
+                                        <span class="info-value">@Model.WorkerEducation</span>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.WorkerSkills))
+                            {
+                                <div class="info-item">
+                                    <i class="fas fa-tools"></i>
+                                    <div>
+                                        <span class="info-label">Kỹ năng</span>
+                                        <span class="info-value">@Model.WorkerSkills</span>
+                                    </div>
+                                </div>
+                            }
+                            <div class="info-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <div>
+                                    <span class="info-label">Ngày ứng tuyển</span>
+                                    <span class="info-value">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.WorkerBio))
+                        {
+                            <div class="applicant-bio">
+                                <h4>Giới thiệu</h4>
+                                <p>@Model.WorkerBio</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card job-card">
+                    <div class="card-body">
+                        <h3 class="card-title">Thông tin công việc</h3>
+                        <div class="job-info">
+                            <h4 class="job-title">@Model.JobTitle</h4>
+                            <div class="job-meta">
+                                <span class="job-type">@Model.JobType</span>
+                                <span class="job-location"><i class="fas fa-map-marker-alt"></i> @Model.JobLocation</span>
+                                <span class="job-salary"><i class="fas fa-money-bill-wave"></i> @Model.SalaryMin - @Model.SalaryMax</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.JobDescription))
+                            {
+                                <div class="job-description">
+                                    <p>@Model.JobDescription</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card status-card">
+                    <div class="card-body">
+                        <h3 class="card-title">Cập nhật trạng thái</h3>
+                        <form asp-action="UpdateStatus" method="post">
+                            <input type="hidden" name="applicationId" value="@Model.Id" />
+                            <div class="form-group mb-3">
+                                <label for="status" class="form-label">Trạng thái</label>
+                                <select name="status" id="status" class="form-select">
+                                    <option value="pending" selected="@(Model.Status == "pending")">Đang chờ</option>
+                                    <option value="accepted" selected="@(Model.Status == "accepted")">Chấp nhận</option>
+                                    <option value="rejected" selected="@(Model.Status == "rejected")">Từ chối</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="note" class="form-label">Ghi chú (sẽ được gửi cho ứng viên)</label>
+                                <textarea name="note" id="note" class="form-control" rows="3" placeholder="Ví dụ: Thời gian phỏng vấn, lý do từ chối, v.v."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Cập nhật
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card notes-card">
+                    <div class="card-body">
+                        <h3 class="card-title">Ghi chú</h3>
+
+                        <form asp-action="AddNote" method="post" class="mb-4">
+                            <input type="hidden" name="applicationId" value="@Model.Id" />
+                            <div class="form-group mb-3">
+                                <label for="newNote" class="form-label">Thêm ghi chú mới</label>
+                                <textarea name="note" id="newNote" class="form-control" rows="2" placeholder="Nhập ghi chú của bạn"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Thêm ghi chú
+                            </button>
+                        </form>
+
+                        <div class="notes-list">
+                            @if (Model.Notes != null && Model.Notes.Any())
+                            {
+                                foreach (var note in Model.Notes)
+                                {
+                                    <div class="note-item">
+                                        <div class="note-content">@note.Note</div>
+                                        <div class="note-date">@note.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="empty-notes">
+                                    <i class="fas fa-sticky-note"></i>
+                                    <p>Chưa có ghi chú nào</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .content-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+    }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .row {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .col-lg-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+
+    .col-lg-8 {
+        flex: 0 0 66.666667%;
+        max-width: 66.666667%;
+    }
+
+    .card {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+        color: #1f2937;
+    }
+
+    .applicant-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .applicant-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #3b82f6;
+    }
+
+    .applicant-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .applicant-headline {
+        color: #6b7280;
+        margin: 0.25rem 0 0;
+    }
+
+    .applicant-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .status-label {
+        font-weight: 500;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.375rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .status-pending {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-accepted {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-rejected {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .applicant-info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+        .info-item i {
+            color: #3b82f6;
+            font-size: 1rem;
+            margin-top: 0.25rem;
+            width: 20px;
+        }
+
+    .info-label {
+        display: block;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .info-value {
+        display: block;
+        font-weight: 500;
+        color: #1f2937;
+    }
+
+    .applicant-bio {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+        .applicant-bio h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+    .job-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #3b82f6;
+        margin-bottom: 0.75rem;
+    }
+
+    .job-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .job-type, .job-location, .job-salary {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    .job-description {
+        color: #6b7280;
+        line-height: 1.6;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+    }
+
+    .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.8125rem;
+    }
+
+    .btn-primary {
+        color: white;
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+            border-color: #2563eb;
+        }
+
+    .btn-outline-secondary {
+        color: #6b7280;
+        border-color: #6b7280;
+        background-color: transparent;
+    }
+
+        .btn-outline-secondary:hover {
+            color: white;
+            background-color: #6b7280;
+        }
+
+    .btn-outline-info {
+        color: #0ea5e9;
+        border-color: #0ea5e9;
+        background-color: transparent;
+    }
+
+        .btn-outline-info:hover {
+            color: white;
+            background-color: #0ea5e9;
+        }
+
+    .notes-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .note-item {
+        background-color: #f9fafb;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .note-content {
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .note-date {
+        font-size: 0.875rem;
+        color: #6b7280;
+        text-align: right;
+    }
+
+    .empty-notes {
+        text-align: center;
+        padding: 2rem;
+        color: #9ca3af;
+    }
+
+        .empty-notes i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+</style>

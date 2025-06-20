@@ -1,0 +1,208 @@
+﻿@model BusinessObjects.DTOs.Employer.EmployerProfileDto
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+    Layout = "_JobPostManagementLayout";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <div class="page-title-right">
+                    <ol class="breadcrumb m-0">
+                        <li class="breadcrumb-item"><a href="javascript: void(0);">Trang chủ</a></li>
+                        <li class="breadcrumb-item active">Thông tin cá nhân</li>
+                    </ol>
+                </div>
+                <h4 class="page-title">Thông tin cá nhân</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-4 col-lg-5">
+            <div class="card text-center">
+                <div class="card-body">
+                    <img src="@(Model.Avatar ?? "/images/default-avatar.png")" class="rounded-circle avatar-lg img-thumbnail" alt="profile-image">
+
+                    <h4 class="mb-0 mt-2">@Model.FullName</h4>
+                    <p class="text-muted font-14">@Model.Username</p>
+
+                    <div class="text-start mt-3">
+                        <h4 class="font-13 text-uppercase">Thông tin liên hệ :</h4>
+                        <p class="text-muted font-13 mb-3">
+                            <strong>Email :</strong> <span class="ms-2">@Model.Email</span>
+                        </p>
+
+                        <p class="text-muted font-13 mb-3">
+                            <strong>Số điện thoại :</strong> <span class="ms-2">@(Model.PhoneNumber ?? "Chưa cập nhật")</span>
+                        </p>
+
+                        <p class="text-muted font-13 mb-3">
+                            <strong>Địa chỉ :</strong> <span class="ms-2">@(Model.Address ?? "Chưa cập nhật")</span>
+                        </p>
+
+                        <p class="text-muted font-13 mb-3">
+                            <strong>Ngày tham gia :</strong> <span class="ms-2">@(Model.CreatedAt?.ToString("dd/MM/yyyy") ?? "N/A")</span>
+                        </p>
+                    </div>
+
+                    <div class="mt-3">
+                        <a asp-action="EditProfile" class="btn btn-primary btn-sm me-2">
+                            <i class="mdi mdi-account-edit me-1"></i> Chỉnh sửa thông tin
+                        </a>
+                        <a asp-action="ChangePassword" class="btn btn-secondary btn-sm">
+                            <i class="mdi mdi-lock-reset me-1"></i> Đổi mật khẩu
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance Card -->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title">Số dư tài khoản</h4>
+                    <div class="text-center">
+                        <h2 class="text-primary">@Model.Balance.ToString("N0") CD</h2>
+                        <p class="text-muted">Số dư hiện tại</p>
+                        <a href="#" class="btn btn-success btn-sm">
+                            <i class="mdi mdi-plus me-1"></i> Nạp tiền
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8 col-lg-7">
+            <!-- Statistics Cards -->
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="card widget-flat">
+                        <div class="card-body">
+                            <div class="float-end">
+                                <i class="mdi mdi-briefcase-outline widget-icon"></i>
+                            </div>
+                            <h5 class="text-muted fw-normal mt-0" title="Tin đăng">Tin đăng</h5>
+                            <h3 class="mt-3 mb-3">@Model.JobPostsCount</h3>
+                            <p class="mb-0 text-muted">
+                                <span class="text-nowrap">Tổng số tin đã đăng</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="card widget-flat">
+                        <div class="card-body">
+                            <div class="float-end">
+                                <i class="mdi mdi-account-multiple-outline widget-icon"></i>
+                            </div>
+                            <h5 class="text-muted fw-normal mt-0" title="Ứng viên">Ứng viên</h5>
+                            <h3 class="mt-3 mb-3">@Model.ApplicationsCount</h3>
+                            <p class="mb-0 text-muted">
+                                <span class="text-nowrap">Tổng số ứng viên</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="card widget-flat">
+                        <div class="card-body">
+                            <div class="float-end">
+                                <i class="mdi mdi-eye-outline widget-icon"></i>
+                            </div>
+                            <h5 class="text-muted fw-normal mt-0" title="Lượt xem">Lượt xem</h5>
+                            <h3 class="mt-3 mb-3">@Model.ViewsCount</h3>
+                            <p class="mb-0 text-muted">
+                                <span class="text-nowrap">Tổng lượt xem tin</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <div class="card widget-flat">
+                        <div class="card-body">
+                            <div class="float-end">
+                                <i class="mdi mdi-star-outline widget-icon"></i>
+                            </div>
+                            <h5 class="text-muted fw-normal mt-0" title="Credit đăng tin">Credit đăng tin</h5>
+                            <h3 class="mt-3 mb-3">@Model.TotalPostsAvailable</h3>
+                            <p class="mb-0 text-muted">
+                                <span class="text-nowrap">Tổng credit còn lại</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post Credits Detail -->
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="header-title">Chi tiết Credit đăng tin</h4>
+
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="badge badge-soft-secondary p-2 mb-2">
+                                    <i class="mdi mdi-circle font-18"></i>
+                                </div>
+                                <h5 class="mb-1">@Model.SilverPostsAvailable</h5>
+                                <p class="text-muted mb-0">Tin Bạc</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="badge badge-soft-warning p-2 mb-2">
+                                    <i class="mdi mdi-circle font-18"></i>
+                                </div>
+                                <h5 class="mb-1">@Model.GoldPostsAvailable</h5>
+                                <p class="text-muted mb-0">Tin Vàng</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="badge badge-soft-info p-2 mb-2">
+                                    <i class="mdi mdi-diamond-stone font-18"></i>
+                                </div>
+                                <h5 class="mb-1">@Model.DiamondPostsAvailable</h5>
+                                <p class="text-muted mb-0">Tin Kim cương</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="badge badge-soft-success p-2 mb-2">
+                                    <i class="mdi mdi-arrow-up-bold font-18"></i>
+                                </div>
+                                <h5 class="mb-1">@Model.PushToTopAvailable</h5>
+                                <p class="text-muted mb-0">Đẩy tin lên đầu</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6 offset-md-3">
+                            <div class="text-center">
+                                <div class="badge badge-soft-primary p-2 mb-2">
+                                    <i class="mdi mdi-check-decagram font-18"></i>
+                                </div>
+                                <h5 class="mb-1">@Model.AuthenLogoAvailable</h5>
+                                <p class="text-muted mb-0">Logo xác thực</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-primary">
+                            <i class="mdi mdi-cart-plus me-1"></i> Mua thêm Credit
+                        </a>
+                        <a asp-action="History" class="btn btn-outline-secondary ms-2">
+                            <i class="mdi mdi-history me-1"></i> Xem lịch sử
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

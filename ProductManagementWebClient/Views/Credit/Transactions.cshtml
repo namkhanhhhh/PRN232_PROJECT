@@ -1,0 +1,142 @@
+﻿@model List<BusinessObjects.DTOs.Credit.CreditTransactionDto>
+@{
+    ViewData["Title"] = "Lịch sử giao dịch";
+    Layout = "~/Views/Shared/_JobPostManagementLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-history mr-2"></i>
+                        Lịch sử giao dịch
+                    </h3>
+                    <div class="card-tools">
+                        <a href="@Url.Action("Balance", "Credit")" class="btn btn-info btn-sm">
+                            <i class="fas fa-wallet mr-1"></i>
+                            Xem số dư
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Ngày giao dịch</th>
+                                        <th>Loại giao dịch</th>
+                                        <th>Số tiền</th>
+                                        <th>Số dư sau giao dịch</th>
+                                        <th>Mô tả</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var transaction in Model)
+                                    {
+                                        <tr>
+                                            <td>@transaction.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                            <td>
+                                                @switch (transaction.TransactionType?.ToLower())
+                                                {
+                                                    case "naptien":
+                                                    case "topup":
+                                                        <span class="badge badge-success">
+                                                            <i class="fas fa-plus mr-1"></i>
+                                                            Nạp tiền
+                                                        </span>
+                                                        break;
+                                                    case "trutien":
+                                                    case "deduct":
+                                                        <span class="badge badge-danger">
+                                                            <i class="fas fa-minus mr-1"></i>
+                                                            Trừ tiền
+                                                        </span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge badge-secondary">
+                                                            @transaction.TransactionType
+                                                        </span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (transaction.TransactionType?.ToLower() == "naptien" || transaction.TransactionType?.ToLower() == "topup")
+                                                {
+                                                    <span class="text-success font-weight-bold">
+                                                        +@transaction.Amount.ToString("N0") VNĐ
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-danger font-weight-bold">
+                                                        -@transaction.Amount.ToString("N0") VNĐ
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="font-weight-bold">
+                                                @transaction.BalanceAfter.ToString("N0") VNĐ
+                                            </td>
+                                            <td>
+                                                <small>@transaction.Description</small>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="row mt-3">
+                            <div class="col-sm-12 col-md-5">
+                                <div class="dataTables_info">
+                                    Hiển thị @Model.Count giao dịch
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-md-7">
+                                <div class="dataTables_paginate paging_simple_numbers">
+                                    <ul class="pagination">
+                                        @if (ViewBag.CurrentPage > 1)
+                                        {
+                                            <li class="paginate_button page-item previous">
+                                                <a href="@Url.Action("Transactions", new { page = ViewBag.CurrentPage - 1, pageSize = ViewBag.PageSize })"
+                                                   class="page-link">Trước</a>
+                                            </li>
+                                        }
+
+                                        <li class="paginate_button page-item active">
+                                            <span class="page-link">@ViewBag.CurrentPage</span>
+                                        </li>
+
+                                        @if (Model.Count == ViewBag.PageSize)
+                                        {
+                                            <li class="paginate_button page-item next">
+                                                <a href="@Url.Action("Transactions", new { page = ViewBag.CurrentPage + 1, pageSize = ViewBag.PageSize })"
+                                                   class="page-link">Sau</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-receipt text-muted" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3 text-muted">Chưa có giao dịch nào</h4>
+                            <p class="text-muted">Bạn chưa thực hiện giao dịch nào. Hãy nạp tiền để bắt đầu sử dụng dịch vụ.</p>
+                            <a href="@Url.Action("Deposit", "Credit")" class="btn btn-primary">
+                                <i class="fas fa-plus mr-2"></i>
+                                Nạp tiền ngay
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
