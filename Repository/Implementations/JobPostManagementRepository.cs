@@ -1,4 +1,5 @@
 ﻿using BusinessObjects.Models;
+using BusinessObjects.DTOs.JobPost;
 using DataAccess.DAO;
 using Repository.Interfaces;
 
@@ -31,6 +32,11 @@ namespace Repository.Implementations
         public async Task<bool> UpdateJobPostAsync(JobPost jobPost)
         {
             return await _jobPostManagementDAO.UpdateJobPostAsync(jobPost);
+        }
+
+        public async Task<bool> UpdateJobPostWithCategoriesAsync(JobPostUpdateDto jobPostDto)
+        {
+            return await _jobPostManagementDAO.UpdateJobPostWithCategoriesAsync(jobPostDto);
         }
 
         public async Task<bool> DeleteJobPostAsync(int id)

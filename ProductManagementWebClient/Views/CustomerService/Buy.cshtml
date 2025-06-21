@@ -1,0 +1,344 @@
+﻿@model BusinessObjects.DTOs.CustomerService.BuyViewDto
+@{
+    ViewData["Title"] = "Mua " + (Model.Type == "service" ? "dịch vụ" : "gói combo");
+    Layout = "~/Views/Shared/_JobPostManagementLayout.cshtml";
+}
+
+<style>
+    .buy-container {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .buy-header {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .balance-info {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        display: inline-block;
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .product-name {
+        color: #2c3e50;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .product-description {
+        color: #6c757d;
+        font-size: 16px;
+        margin-bottom: 20px;
+        text-align: center;
+        line-height: 1.6;
+    }
+
+    .product-features {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0;
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+        .product-features li {
+            color: #495057;
+            padding: 8px 0;
+            font-size: 16px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+            .product-features li:last-child {
+                border-bottom: none;
+            }
+
+        .product-features i {
+            color: #28a745;
+            margin-right: 10px;
+            width: 20px;
+        }
+
+    .product-price {
+        font-size: 32px;
+        font-weight: 700;
+        color: #e74c3c;
+        text-align: center;
+        margin: 20px 0;
+        padding: 15px;
+        background: #fff5f5;
+        border-radius: 10px;
+        border: 2px solid #e74c3c;
+    }
+
+    .purchase-form {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 12px 15px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+    .total-display {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .total-label {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    .total-amount {
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .btn-purchase {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 18px;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+        .btn-purchase:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-purchase:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+    .btn-back {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 20px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+
+        .btn-back:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+</style>
+
+<div class="buy-container">
+    <div class="buy-header">
+        <h1 style="color: #2c3e50; margin-bottom: 10px;">
+            <i class="fas fa-shopping-cart"></i>
+            Mua @(Model.Type == "service" ? "dịch vụ" : "gói combo")
+        </h1>
+        <div class="balance-info">
+            <i class="fas fa-wallet"></i> Số dư: @Model.UserBalance.ToString("N0") CD
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="row">
+                <!-- Thông tin sản phẩm -->
+                <div class="col-md-6">
+                    <div class="product-card">
+                        <div class="product-name">
+                            <i class="fas @(Model.Type == "service" ? "fa-cog text-primary" : "fa-crown text-warning")"></i>
+                            @Model.Name
+                        </div>
+                        <div class="product-description">@Model.Description</div>
+
+                        <ul class="product-features">
+                            @if (Model.Type == "service")
+                            {
+                                @if (Model.SilverPostsIncluded > 0)
+                                {
+                                    <li><i class="fas fa-star"></i> @Model.SilverPostsIncluded tin bạc</li>
+                                }
+                                @if (Model.GoldPostsIncluded > 0)
+                                {
+                                    <li><i class="fas fa-star"></i> @Model.GoldPostsIncluded tin vàng</li>
+                                }
+                                @if (Model.DiamondPostsIncluded > 0)
+                                {
+                                    <li><i class="fas fa-gem"></i> @Model.DiamondPostsIncluded tin kim cương</li>
+                                }
+                                @if (Model.PushToTopAvailable > 0)
+                                {
+                                    <li><i class="fas fa-arrow-up"></i> @Model.PushToTopAvailable lần đẩy tin</li>
+                                }
+                                @if (Model.AuthenLogoAvailable > 0)
+                                {
+                                    <li><i class="fas fa-certificate"></i> @Model.AuthenLogoAvailable huy hiệu xác thực</li>
+                                }
+                            }
+                            else if (Model.Type == "combo")
+                            {
+                                <li><i class="fas fa-star"></i> @Model.SilverPosts tin bạc</li>
+                                <li><i class="fas fa-star"></i> @Model.GoldPosts tin vàng</li>
+                                <li><i class="fas fa-gem"></i> @Model.DiamondPosts tin kim cương</li>
+                                <li><i class="fas fa-arrow-up"></i> @Model.PushTopTimes lần đẩy tin</li>
+                            }
+
+                            @if (Model.DurationDays.HasValue)
+                            {
+                                <li><i class="fas fa-clock"></i> Thời hạn: @Model.DurationDays ngày</li>
+                            }
+                        </ul>
+
+                        <div class="product-price">@Model.Price.ToString("N0") CD</div>
+                    </div>
+                </div>
+
+                <!-- Form mua hàng -->
+                <div class="col-md-6">
+                    <div class="purchase-form">
+                        <h3 style="color: #2c3e50; margin-bottom: 25px; text-align: center;">
+                            <i class="fas fa-credit-card"></i> Thông tin mua hàng
+                        </h3>
+
+                        <form method="post" id="purchaseForm">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <input type="hidden" name="type" value="@Model.Type" />
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-sort-numeric-up"></i> Số lượng:
+                                </label>
+                                <input type="number" class="form-control" name="quantity" id="quantity"
+                                       value="1" min="1" max="10" />
+                            </div>
+
+                            <div class="total-display">
+                                <div class="total-label">Tổng thanh toán:</div>
+                                <div class="total-amount" id="totalCost">
+                                    @Model.Price.ToString("N0") CD
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-purchase" id="purchaseBtn">
+                                <i class="fas fa-shopping-cart"></i> Xác nhận mua
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="@Url.Action("Index")" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const basePrice = @Model.Price;
+    const userBalance = @Model.UserBalance;
+
+    document.getElementById('quantity').addEventListener('input', function () {
+        updateTotal();
+    });
+
+    function updateTotal() {
+        var quantity = parseInt(document.getElementById('quantity').value) || 1;
+        var total = quantity * basePrice;
+
+        document.getElementById('totalCost').textContent = total.toLocaleString('vi-VN') + ' CD';
+
+        // Check if user has enough balance
+        const purchaseBtn = document.getElementById('purchaseBtn');
+        if (total > userBalance) {
+            purchaseBtn.disabled = true;
+            purchaseBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Không đủ số dư';
+        } else {
+            purchaseBtn.disabled = false;
+            purchaseBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Xác nhận mua';
+        }
+    }
+
+    // Form submission handler
+    document.getElementById('purchaseForm').addEventListener('submit', function (e) {
+        const quantity = parseInt(document.getElementById('quantity').value);
+        const total = basePrice * quantity;
+
+        if (total > userBalance) {
+            e.preventDefault();
+            alert('Số dư không đủ để thực hiện giao dịch này!');
+            return false;
+        }
+
+        // Show loading state
+        const purchaseBtn = document.getElementById('purchaseBtn');
+        purchaseBtn.disabled = true;
+        purchaseBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+    });
+
+    // Initialize
+    updateTotal();
+</script>

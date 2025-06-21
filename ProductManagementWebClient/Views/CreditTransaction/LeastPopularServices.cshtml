@@ -1,0 +1,187 @@
+﻿@model List<BusinessObjects.DTOs.CreditTransaction.LeastPopularServiceDto>
+@{
+    ViewData["Title"] = "Dịch Vụ Ít Bán Chạy";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">
+                <i class="bi bi-bar-chart me-2"></i>
+                Dịch Vụ Ít Bán Chạy Nhất
+            </h4>
+            <div>
+                <a asp-action="Dashboard" class="btn btn-primary btn-sm">
+                    <i class="bi bi-graph-up me-1"></i>
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Danh sách các dịch vụ có lượt mua thấp nhất, giúp đánh giá hiệu quả kinh doanh và điều chỉnh chiến lược.
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Thứ hạng</th>
+                            <th>Tên dịch vụ</th>
+                            <th>Giá</th>
+                            <th>Số lượt mua</th>
+                            <th>Tổng doanh thu</th>
+                            <th>Lần mua cuối</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Count; i++)
+                        {
+                            var service = Model[i];
+                            <tr>
+                                <td>
+                                    <span class="badge @(i < 3 ? "bg-danger" : i < 5 ? "bg-warning" : "bg-secondary")">
+                                        #@(i + 1)
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>@service.ServiceName</strong>
+                                </td>
+                                <td>
+                                    <span class="text-primary fw-bold">
+                                        @service.Price.ToString("N0") VNĐ
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge @(service.PurchaseCount == 0 ? "bg-danger" : service.PurchaseCount < 5 ? "bg-warning" : "bg-success")">
+                                        @service.PurchaseCount lượt
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-success fw-bold">
+                                        @service.TotalRevenue.ToString("N0") VNĐ
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (service.LastPurchased.HasValue)
+                                    {
+                                        <span class="text-muted">
+                                            @service.LastPurchased.Value.ToString("dd/MM/yyyy")
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">
+                                            (@((DateTime.Now - service.LastPurchased.Value).Days) ngày trước)
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">
+                                            <i class="bi bi-x-circle me-1"></i>
+                                            Chưa có
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (service.PurchaseCount == 0)
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>
+                                            Chưa bán được
+                                        </span>
+                                    }
+                                    else if (service.PurchaseCount < 5)
+                                    {
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-dash-circle me-1"></i>
+                                            Bán chậm
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            Bình thường
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Statistics Summary -->
+            <div class="row mt-4">
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body text-center">
+                            <h5>Chưa bán được</h5>
+                            <h3>@Model.Count(s => s.PurchaseCount == 0)</h3>
+                            <small>dịch vụ</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h5>Bán chậm</h5>
+                            <h3>@Model.Count(s => s.PurchaseCount > 0 && s.PurchaseCount < 5)</h3>
+                            <small>dịch vụ</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h5>Tổng doanh thu thấp</h5>
+                            <h3>@Model.Sum(s => s.TotalRevenue).ToString("N0")</h3>
+                            <small>VNĐ</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-secondary text-white">
+                        <div class="card-body text-center">
+                            <h5>Trung bình mua/dịch vụ</h5>
+                            <h3>@(Model.Any() ? Math.Round(Model.Average(s => s.PurchaseCount), 1) : 0)</h3>
+                            <small>lượt</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="alert alert-warning mt-4">
+                <h6><i class="bi bi-lightbulb me-2"></i>Khuyến nghị:</h6>
+                <ul class="mb-0">
+                    <li>Xem xét điều chỉnh giá cả cho các dịch vụ chưa bán được</li>
+                    <li>Tăng cường marketing cho các dịch vụ bán chậm</li>
+                    <li>Phân tích nhu cầu thị trường để cải thiện sản phẩm</li>
+                    <li>Cân nhắc ngừng cung cấp các dịch vụ không hiệu quả</li>
+                </ul>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h4 class="text-muted mt-3">Không có dữ liệu</h4>
+                <p class="text-muted">Chưa có thông tin về dịch vụ nào.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}

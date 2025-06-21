@@ -84,6 +84,7 @@ namespace ProductManagementWebClient.Controllers
             {
                 return RedirectToAction("Index", "Login");
             }
+
             try
             {
                 if (!ModelState.IsValid)
@@ -91,12 +92,52 @@ namespace ProductManagementWebClient.Controllers
                     return View(model);
                 }
 
+                // Handle avatar file upload first
+                if (avatarFile != null && avatarFile.Length > 0)
+                {
+                    // Validate file size (max 5MB)
+                    if (avatarFile.Length > 5 * 1024 * 1024)
+                    {
+                        TempData["Error"] = "Kích thước file không được vượt quá 5MB";
+                        return View(model);
+                    }
+
+                    // Validate file type
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var extension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        TempData["Error"] = "Chỉ chấp nhận file JPG, PNG, hoặc GIF";
+                        return View(model);
+                    }
+
+                    // Save file to wwwroot/images/avatars
+                    var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "avatars");
+                    if (!Directory.Exists(uploadsPath))
+                    {
+                        Directory.CreateDirectory(uploadsPath);
+                    }
+
+                    // Generate unique filename
+                    var fileName = $"{Guid.NewGuid()}{extension}";
+                    var filePath = Path.Combine(uploadsPath, fileName);
+
+                    // Save file
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await avatarFile.CopyToAsync(stream);
+                    }
+
+                    // Set avatar path for model
+                    model.Avatar = $"/images/avatars/{fileName}";
+                }
+
                 // Create multipart form data
                 using var formData = new MultipartFormDataContent();
 
                 // Add form fields
-                formData.Add(new StringContent(model.Username), "Username");
-                formData.Add(new StringContent(model.Email), "Email");
+                formData.Add(new StringContent(model.Username ?? ""), "Username");
+                formData.Add(new StringContent(model.Email ?? ""), "Email");
 
                 if (!string.IsNullOrEmpty(model.FirstName))
                     formData.Add(new StringContent(model.FirstName), "FirstName");
@@ -110,15 +151,18 @@ namespace ProductManagementWebClient.Controllers
                 if (!string.IsNullOrEmpty(model.Address))
                     formData.Add(new StringContent(model.Address), "Address");
 
-                // Add avatar file if provided
-                if (avatarFile != null && avatarFile.Length > 0)
+                // Add avatar path if available
+                if (!string.IsNullOrEmpty(model.Avatar))
+                    formData.Add(new StringContent(model.Avatar), "Avatar");
+
+                // Add UserId to form data
+                var userId = HttpContext.Session.GetInt32("UserId");
+                if (userId.HasValue)
                 {
-                    var fileContent = new StreamContent(avatarFile.OpenReadStream());
-                    fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(avatarFile.ContentType);
-                    formData.Add(fileContent, "avatarFile", avatarFile.FileName);
+                    formData.Add(new StringContent(userId.Value.ToString()), "UserId");
                 }
 
-                // Send request
+                // Use HttpClient with proper configuration
                 var httpClient = new HttpClient();
                 var token = HttpContext.Session.GetString("Token");
                 if (!string.IsNullOrEmpty(token))
@@ -127,19 +171,40 @@ namespace ProductManagementWebClient.Controllers
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 }
 
-                var response = await httpClient.PutAsync("https://localhost:7009/api/EmployerApi/profile", formData);
+                var baseUrl = "https://localhost:7009";
+                var response = await httpClient.PutAsync($"{baseUrl}/api/EmployerApi/profile", formData);
+
+                // Read response content for detailed error information
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"API Response Status: {response.StatusCode}");
+                Console.WriteLine($"API Response Content: {responseContent}");
 
                 if (response.IsSuccessStatusCode)
                 {
                     TempData["Success"] = "Cập nhật thông tin thành công!";
                     return RedirectToAction("Profile");
                 }
+                else
+                {
+                    // Try to parse error message from response
+                    try
+                    {
+                        var errorResponse = System.Text.Json.JsonSerializer.Deserialize<ApiResponse<object>>(responseContent, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        TempData["Error"] = errorResponse?.Message ?? $"Cập nhật thông tin thất bại. Status: {response.StatusCode}";
+                    }
+                    catch
+                    {
+                        TempData["Error"] = $"Cập nhật thông tin thất bại. Status: {response.StatusCode}. Response: {responseContent}";
+                    }
 
-                TempData["Error"] = "Cập nhật thông tin thất bại";
-                return View(model);
+                    return View(model);
+                }
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Exception in EditProfile: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
                 TempData["Error"] = $"Lỗi: {ex.Message}";
                 return View(model);
             }

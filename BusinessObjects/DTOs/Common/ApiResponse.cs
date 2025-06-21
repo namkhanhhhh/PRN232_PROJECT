@@ -6,6 +6,7 @@
         public string Message { get; set; } = string.Empty;
         public T? Data { get; set; }
         public List<string> Errors { get; set; } = new List<string>();
+        public int TotalCount { get; set; }
 
         public static ApiResponse<T> SuccessResult(T data, string message = "Success")
         {

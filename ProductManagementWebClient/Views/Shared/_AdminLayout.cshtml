@@ -19,20 +19,16 @@
             --warning-color: #fbbf24;
             --danger-color: #f87171;
             --info-color: #60a5fa;
-            
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --text-muted: #94a3b8;
-            
             --bg-primary: #ffffff;
             --bg-secondary: #f8fafc;
             --bg-sidebar: #1e293b;
             --bg-sidebar-hover: #334155;
-            
             --sidebar-width: 260px;
             --sidebar-collapsed-width: 70px;
             --header-height: 64px;
-            
             --border-radius: 8px;
             --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
             --transition-speed: 0.3s;
@@ -67,9 +63,9 @@
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
         }
 
-        .sidebar.collapsed {
-            width: var(--sidebar-collapsed-width);
-        }
+            .sidebar.collapsed {
+                width: var(--sidebar-collapsed-width);
+            }
 
         .sidebar-brand {
             padding: 16px 20px;
@@ -79,14 +75,14 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .sidebar-brand h2 {
-            color: white;
-            margin: 0 0 0 12px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            white-space: nowrap;
-            transition: opacity var(--transition-speed) ease;
-        }
+            .sidebar-brand h2 {
+                color: white;
+                margin: 0 0 0 12px;
+                font-size: 1.2rem;
+                font-weight: 600;
+                white-space: nowrap;
+                transition: opacity var(--transition-speed) ease;
+            }
 
         .sidebar.collapsed .sidebar-brand h2 {
             opacity: 0;
@@ -100,45 +96,45 @@
             margin: 16px 0 0 0;
         }
 
-        .sidebar-menu li {
-            margin-bottom: 4px;
-        }
+            .sidebar-menu li {
+                margin-bottom: 4px;
+            }
 
-        .sidebar-menu .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            transition: all var(--transition-speed) ease;
-            border-radius: 0;
-            position: relative;
-            overflow: hidden;
-            text-decoration: none;
-        }
+            .sidebar-menu .nav-link {
+                color: rgba(255, 255, 255, 0.8);
+                padding: 12px 20px;
+                display: flex;
+                align-items: center;
+                font-size: 0.9rem;
+                transition: all var(--transition-speed) ease;
+                border-radius: 0;
+                position: relative;
+                overflow: hidden;
+                text-decoration: none;
+            }
 
-        .sidebar-menu .nav-link:hover,
-        .sidebar-menu .nav-link.active {
-            color: white;
-            background-color: var(--bg-sidebar-hover);
-        }
+                .sidebar-menu .nav-link:hover,
+                .sidebar-menu .nav-link.active {
+                    color: white;
+                    background-color: var(--bg-sidebar-hover);
+                }
 
-        .sidebar-menu .nav-link.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 4px;
-            background-color: var(--primary-light);
-        }
+                    .sidebar-menu .nav-link.active::before {
+                        content: '';
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        height: 100%;
+                        width: 4px;
+                        background-color: var(--primary-light);
+                    }
 
-        .sidebar-menu .nav-link i {
-            margin-right: 12px;
-            font-size: 1.1rem;
-            min-width: 24px;
-            text-align: center;
-        }
+                .sidebar-menu .nav-link i {
+                    margin-right: 12px;
+                    font-size: 1.1rem;
+                    min-width: 24px;
+                    text-align: center;
+                }
 
         .sidebar.collapsed .sidebar-menu .nav-link span {
             opacity: 0;
@@ -170,9 +166,9 @@
             transition: margin-left var(--transition-speed) ease;
         }
 
-        .main-content.expanded {
-            margin-left: var(--sidebar-collapsed-width);
-        }
+            .main-content.expanded {
+                margin-left: var(--sidebar-collapsed-width);
+            }
 
         /* Header */
         .main-header {
@@ -206,10 +202,10 @@
             transition: all var(--transition-speed) ease;
         }
 
-        .toggle-sidebar:hover {
-            background-color: var(--bg-secondary);
-            color: var(--primary-color);
-        }
+            .toggle-sidebar:hover {
+                background-color: var(--bg-secondary);
+                color: var(--primary-color);
+            }
 
         .page-title {
             font-size: 1.2rem;
@@ -237,10 +233,10 @@
             border: 1px solid transparent;
         }
 
-        .user-info:hover {
-            background-color: var(--bg-secondary);
-            border-color: #e2e8f0;
-        }
+            .user-info:hover {
+                background-color: var(--bg-secondary);
+                border-color: #e2e8f0;
+            }
 
         .user-avatar {
             width: 36px;
@@ -304,16 +300,16 @@
             text-decoration: none;
         }
 
-        .user-menu .user-item:hover {
-            background-color: var(--bg-secondary);
-        }
+            .user-menu .user-item:hover {
+                background-color: var(--bg-secondary);
+            }
 
-        .user-menu .user-item i {
-            margin-right: 12px;
-            width: 20px;
-            text-align: center;
-            color: var(--text-secondary);
-        }
+            .user-menu .user-item i {
+                margin-right: 12px;
+                width: 20px;
+                text-align: center;
+                color: var(--text-secondary);
+            }
 
         .user-menu .user-footer {
             padding: 12px 16px;
@@ -333,13 +329,13 @@
             border: none;
         }
 
-        .user-menu .btn-logout:hover {
-            background-color: #fecaca;
-        }
+            .user-menu .btn-logout:hover {
+                background-color: #fecaca;
+            }
 
-        .user-menu .btn-logout i {
-            margin-right: 8px;
-        }
+            .user-menu .btn-logout i {
+                margin-right: 8px;
+            }
 
         /* Content Area */
         .content-wrapper {
@@ -367,11 +363,11 @@
             justify-content: space-between;
         }
 
-        .card-header .card-title {
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
+            .card-header .card-title {
+                margin: 0;
+                font-size: 1.1rem;
+                font-weight: 600;
+            }
 
         .card-body {
             padding: 20px;
@@ -382,21 +378,21 @@
             margin-bottom: 0;
         }
 
-        .table th {
-            font-weight: 500;
-            color: var(--text-secondary);
-            border-top: none;
-            padding: 12px 16px;
-            background-color: var(--bg-secondary);
-            white-space: nowrap;
-        }
+            .table th {
+                font-weight: 500;
+                color: var(--text-secondary);
+                border-top: none;
+                padding: 12px 16px;
+                background-color: var(--bg-secondary);
+                white-space: nowrap;
+            }
 
-        .table td {
-            vertical-align: middle;
-            padding: 12px 16px;
-            color: var(--text-primary);
-            border-color: #e2e8f0;
-        }
+            .table td {
+                vertical-align: middle;
+                padding: 12px 16px;
+                color: var(--text-primary);
+                border-color: #e2e8f0;
+            }
 
         .table-hover tbody tr:hover {
             background-color: rgba(0,0,0,0.01);
@@ -415,10 +411,10 @@
             border-color: var(--primary-color);
         }
 
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
-        }
+            .btn-primary:hover {
+                background-color: var(--primary-dark);
+                border-color: var(--primary-dark);
+            }
 
         .btn-success {
             background-color: var(--success-color);
@@ -497,6 +493,29 @@
                         <span>Quản lý người dùng</span>
                     </a>
                 </li>
+
+                <li class="nav-header">QUẢN LÝ GIAO DỊCH</li>
+
+                <li>
+                    <a asp-controller="CreditTransaction" asp-action="Dashboard" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "CreditTransaction" && ViewContext.RouteData.Values["action"].ToString() == "Dashboard" ? "active" : "")">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Dashboard Giao Dịch</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a asp-controller="CreditTransaction" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "CreditTransaction" && ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")">
+                        <i class="bi bi-list-ul"></i>
+                        <span>Lịch Sử Giao Dịch</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a asp-controller="CreditTransaction" asp-action="LeastPopularServices" class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "CreditTransaction" && ViewContext.RouteData.Values["action"].ToString() == "LeastPopularServices" ? "active" : "")">
+                        <i class="bi bi-bar-chart"></i>
+                        <span>Dịch Vụ Ít Bán</span>
+                    </a>
+                </li>
             </ul>
         </aside>
 
@@ -510,7 +529,7 @@
                     </div>
                     <h1 class="page-title">@ViewData["Title"]</h1>
                 </div>
-                
+
                 <div class="header-right">
                     <div class="user-dropdown" id="userDropdown">
                         <div class="user-info">
@@ -568,9 +587,9 @@
             const toggleSidebar = document.getElementById('toggleSidebar');
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
-            
+
             const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            
+
             if (sidebarCollapsed) {
                 sidebar.classList.add('collapsed');
                 mainContent.classList.add('expanded');
@@ -580,9 +599,9 @@
                 toggleSidebar.addEventListener('click', function () {
                     sidebar.classList.toggle('collapsed');
                     mainContent.classList.toggle('expanded');
-                    
+
                     localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-                    
+
                     sidebar.classList.toggle('show');
                 });
             }

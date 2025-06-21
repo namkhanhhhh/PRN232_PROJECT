@@ -83,7 +83,7 @@
                     <div class="space-y-6">
                         @foreach (var job in Model.Items)
                         {
-                            <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition duration-300">
+                            <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition duration-300 relative">
                                 <div class="flex justify-between items-start">
                                     <div class="flex-1">
                                         <div class="flex items-start justify-between">
@@ -96,9 +96,11 @@
                                                 <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                                                     @job.PostType
                                                 </span>
-                                                @if (User.Identity.IsAuthenticated)
+                                                @if (User.Identity.IsAuthenticated && User.IsInRole("Worker"))
                                                 {
-                                                    <button type="button" class="wishlist-toggle text-gray-400 hover:text-red-500" data-job-id="@job.Id" data-is-in-wishlist="@job.IsInWishlist.ToString().ToLower()">
+                                                    <button type="button" class="wishlist-toggle text-gray-400 hover:text-red-500 transition-colors duration-200"
+                                                            data-job-id="@job.Id" data-is-in-wishlist="@job.IsInWishlist.ToString().ToLower()"
+                                                            onclick="event.preventDefault(); event.stopPropagation();">
                                                         @if (job.IsInWishlist)
                                                         {
                                                             <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
@@ -186,6 +188,7 @@
                                             @if (User.Identity.IsAuthenticated && User.IsInRole("Worker"))
                                             {
                                                 <form asp-controller="Worker" asp-action="ApplyJob" method="post" class="inline">
+                                                    @Html.AntiForgeryToken()
                                                     <input type="hidden" name="jobId" value="@job.Id" />
                                                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm">
                                                         Ứng tuyển ngay
@@ -281,58 +284,123 @@
 
 @section Scripts {
     <script>
-        // Wishlist toggle functionality - FIXED VERSION
-        document.querySelectorAll('.wishlist-toggle').forEach(button => {
-            button.addEventListener('click', function () {
-                const jobId = this.getAttribute('data-job-id');
-                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        // Wishlist functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const wishlistButtons = document.querySelectorAll('.wishlist-toggle');
 
-                // Create FormData instead of JSON - this matches JobDetails.cshtml approach
-                const formData = new FormData();
-                formData.append('jobId', jobId);
+            wishlistButtons.forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-                fetch('/Worker/ToggleWishlist', {
-                    method: 'POST',
-                    headers: {
-                        'RequestVerificationToken': token
-                    },
-                    body: formData  // Use FormData instead of JSON
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            console.error(data.error);
-                            alert(data.error);
-                            return;
-                        }
+                    const jobId = this.getAttribute('data-job-id');
+                    const isInWishlist = this.getAttribute('data-is-in-wishlist') === 'true';
 
-                        // Update the button state
-                        this.setAttribute('data-is-in-wishlist', data.isInWishlist);
-
-                        if (data.isInWishlist) {
-                            this.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>';
-                            this.classList.add('text-red-500');
-                            this.classList.remove('text-gray-400');
-                        } else {
-                            this.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.682l-1.318-1.364a4.5 4.5 0 00-6.364 0z"></path></svg>';
-                            this.classList.remove('text-red-500');
-                            this.classList.add('text-gray-400');
-                        }
-
-                        // Show success message
-                        const message = document.createElement('div');
-                        message.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50';
-                        message.textContent = data.message;
-                        document.body.appendChild(message);
-
-                        setTimeout(() => {
-                            message.remove();
-                        }, 3000);
-
-                        // Update wishlist badge count if it exists
-                        updateWishlistBadge();
-                    }));
+                    toggleWishlist(jobId, this);
+                });
             });
         });
+
+        function toggleWishlist(jobId, buttonElement) {
+            // Show loading state
+            const originalHTML = buttonElement.innerHTML;
+            buttonElement.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>';
+            buttonElement.disabled = true;
+
+            const formData = new FormData();
+            formData.append('jobId', jobId);
+
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            fetch('/Worker/ToggleWishlist', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token || ''
+                },
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        showMessage(data.error, 'error');
+                        buttonElement.innerHTML = originalHTML;
+                        buttonElement.disabled = false;
+                        return;
+                    }
+
+                    // Update button state
+                    buttonElement.setAttribute('data-is-in-wishlist', data.isInWishlist);
+
+                    if (data.isInWishlist) {
+                        buttonElement.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>';
+                        buttonElement.classList.add('text-red-500');
+                        buttonElement.classList.remove('text-gray-400');
+                    } else {
+                        buttonElement.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.682l-1.318-1.364a4.5 4.5 0 00-6.364 0z"></path></svg>';
+                        buttonElement.classList.remove('text-red-500');
+                        buttonElement.classList.add('text-gray-400');
+                    }
+
+                    buttonElement.disabled = false;
+
+                    // Show success message
+                    if (data.message) {
+                        showMessage(data.message, 'success');
+                    }
+
+                    // Update wishlist badge
+                    updateWishlistBadge();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('Đã xảy ra lỗi khi cập nhật danh sách yêu thích', 'error');
+                    buttonElement.innerHTML = originalHTML;
+                    buttonElement.disabled = false;
+                });
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `fixed top-4 right-4 px-4 py-2 rounded-md shadow-lg z-50 transition-all duration-300 ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                }`;
+            messageDiv.textContent = message;
+            document.body.appendChild(messageDiv);
+
+            // Animate in
+            setTimeout(() => {
+                messageDiv.classList.add('opacity-100');
+            }, 10);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                messageDiv.classList.add('opacity-0');
+                setTimeout(() => {
+                    if (document.body.contains(messageDiv)) {
+                        document.body.removeChild(messageDiv);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function updateWishlistBadge() {
+            fetch('/Worker/GetWishlistCount', {
+                method: 'GET'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const wishlistBadge = document.getElementById('wishlist-badge');
+                    if (wishlistBadge) {
+                        if (data.count > 0) {
+                            wishlistBadge.textContent = data.count;
+                            wishlistBadge.classList.remove('hidden');
+                        } else {
+                            wishlistBadge.classList.add('hidden');
+                        }
+                    }
+                })
+                .catch(error => console.error('Error updating wishlist badge:', error));
+        }
     </script>
 }

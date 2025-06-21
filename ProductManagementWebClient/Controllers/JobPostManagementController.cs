@@ -189,7 +189,7 @@ namespace ProductManagementWebClient.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(JobPostCreateDto model, IFormFile? ImageMainFile, IFormFile? Image2File, IFormFile? Image3File, IFormFile? Image4File)
+        public async Task<IActionResult> Create(JobPostCreateDto model, IFormFile? ImageMainFile, IFormFile? Image2File, IFormFile? Image3File, IFormFile? Image4File, string? selectedCategoryIds)
         {
             try
             {
@@ -200,6 +200,22 @@ namespace ProductManagementWebClient.Controllers
                 }
 
                 model.UserId = userId.Value;
+
+                // Parse selected category IDs
+                if (!string.IsNullOrEmpty(selectedCategoryIds))
+                {
+                    try
+                    {
+                        model.CategoryIds = selectedCategoryIds.Split(',')
+                            .Where(id => !string.IsNullOrWhiteSpace(id))
+                            .Select(int.Parse)
+                            .ToList();
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("CategoryIds", "Invalid category selection");
+                    }
+                }
 
                 // Handle image uploads
                 var imageFiles = new[] {
@@ -422,6 +438,19 @@ namespace ProductManagementWebClient.Controllers
                         Status = response.Data.Status
                     };
 
+                    // Get current categories for this job post
+                    var currentCategoriesResponse = await _apiHelper.GetAsync<ApiResponseDto<List<int>>>($"api/JobPostManagementApi/{id}/categories");
+                    if (currentCategoriesResponse?.Success == true && currentCategoriesResponse.Data != null)
+                    {
+                        updateDto.CategoryIds = currentCategoriesResponse.Data;
+                        ViewBag.CurrentCategoryIds = string.Join(",", currentCategoriesResponse.Data);
+                    }
+                    else
+                    {
+                        updateDto.CategoryIds = new List<int>();
+                        ViewBag.CurrentCategoryIds = "";
+                    }
+
                     var userId = HttpContext.Session.GetInt32("UserId");
                     await LoadUserBalanceForAllActions();
                     return View(updateDto);
@@ -437,10 +466,26 @@ namespace ProductManagementWebClient.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(JobPostUpdateDto model, IFormFile? ImageMainFile, IFormFile? Image2File, IFormFile? Image3File, IFormFile? Image4File)
+        public async Task<IActionResult> Edit(JobPostUpdateDto model, IFormFile? ImageMainFile, IFormFile? Image2File, IFormFile? Image3File, IFormFile? Image4File, string? selectedCategoryIds)
         {
             try
             {
+                // Parse selected category IDs
+                if (!string.IsNullOrEmpty(selectedCategoryIds))
+                {
+                    try
+                    {
+                        model.CategoryIds = selectedCategoryIds.Split(',')
+                            .Where(id => !string.IsNullOrWhiteSpace(id))
+                            .Select(int.Parse)
+                            .ToList();
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("CategoryIds", "Invalid category selection");
+                    }
+                }
+
                 // Get current job post to preserve existing images if no new images are uploaded
                 var currentJobPostResponse = await _apiHelper.GetAsync<ApiResponseDto<JobPostListDto>>($"api/JobPostManagementApi/{model.Id}");
 
@@ -625,16 +670,16 @@ namespace ProductManagementWebClient.Controllers
         {
             try
             {
-                var response = await _apiHelper.GetAsync<ApiResponseDto<List<JobCategoryDto>>>("api/JobPostManagementApi/categories");
+                var response = await _apiHelper.GetAsync<ApiResponseDto<List<JobCategoryHierarchyDto>>>("api/JobPostManagementApi/categories");
                 if (response?.Success == true && response.Data != null)
                 {
                     return Json(response.Data);
                 }
-                return Json(new List<JobCategoryDto>());
+                return Json(new List<JobCategoryHierarchyDto>());
             }
             catch (Exception ex)
             {
-                return Json(new List<JobCategoryDto>());
+                return Json(new List<JobCategoryHierarchyDto>());
             }
         }
 
@@ -712,7 +757,7 @@ namespace ProductManagementWebClient.Controllers
             try
             {
                 var userId = HttpContext.Session.GetInt32("UserId");
-                var credit= HttpContext.Session.GetInt32("credit");
+                var credit = HttpContext.Session.GetInt32("credit");
             }
             catch
             {
@@ -722,12 +767,12 @@ namespace ProductManagementWebClient.Controllers
         }
     }
 
-
-
-    public class JobCategoryDto
+    public class JobCategoryHierarchyDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public int? ParentId { get; set; }
+        public List<JobCategoryHierarchyDto> Children { get; set; } = new List<JobCategoryHierarchyDto>();
     }
 }

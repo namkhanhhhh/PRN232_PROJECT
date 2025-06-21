@@ -17,7 +17,7 @@ public partial class CreditTransaction
 
     public string? ReferenceType { get; set; }
 
-    public decimal BalanceAfter { get; set; }
+    public decimal? BalanceAfter { get; set; }
 
     public string? Description { get; set; }
 

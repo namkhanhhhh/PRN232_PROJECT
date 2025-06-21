@@ -27,7 +27,8 @@ namespace ProductManagementWebClient.Controllers
             decimal? minSalary = null,
             decimal? maxSalary = null,
             int categoryId = 0,
-            int page = 1)
+            int page = 1,
+            int allJobsPage = 1)
         {
             try
             {
@@ -46,6 +47,16 @@ namespace ProductManagementWebClient.Controllers
 
                 var response = await _apiHelper.PostAsync<ApiResponseDto<WorkerDashboardDto>>("api/WorkerApi/dashboard", request);
 
+                // Get all jobs for pagination
+                var allJobsRequest = new AllJobsRequestDto
+                {
+                    Page = allJobsPage,
+                    PageSize = _pageSize,
+                    UserId = GetCurrentUserId()
+                };
+
+                var allJobsResponse = await _apiHelper.PostAsync<PaginatedResponseDto<JobPostDto>>("api/WorkerApi/all-jobs", allJobsRequest);
+
                 if (response?.Success == true && response.Data != null)
                 {
                     ViewBag.Keyword = keyword;
@@ -55,6 +66,8 @@ namespace ProductManagementWebClient.Controllers
                     ViewBag.MaxSalary = maxSalary;
                     ViewBag.CategoryId = categoryId;
                     ViewBag.CurrentPage = page;
+                    ViewBag.AllJobsPage = allJobsPage;
+                    ViewBag.AllJobsData = allJobsResponse?.Success == true ? allJobsResponse : new PaginatedResponseDto<JobPostDto> { Items = new List<JobPostDto>() };
 
                     return View(response.Data);
                 }
@@ -262,7 +275,11 @@ namespace ProductManagementWebClient.Controllers
 
                 if (response?.Success == true)
                 {
-                    return Json(new { isInWishlist = response.Data, message = response.Message });
+                    return Json(new
+                    {
+                        isInWishlist = response.Data,
+                        message = response.Message ?? (response.Data ? "Đã thêm vào danh sách yêu thích" : "Đã xóa khỏi danh sách yêu thích")
+                    });
                 }
 
                 return Json(new { error = response?.Message ?? "Không thể cập nhật danh sách yêu thích" });
@@ -455,18 +472,11 @@ namespace ProductManagementWebClient.Controllers
         {
             if (!ModelState.IsValid)
             {
-                Console.WriteLine("ModelState is invalid:");
-                foreach (var error in ModelState)
-                {
-                    Console.WriteLine($"{error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
-                }
                 return View(model);
             }
 
             try
             {
-                Console.WriteLine($"Submitting profile update for user");
-
                 // Tạo DTO để gửi đến API
                 var updateProfileDto = new UpdateProfileDto
                 {
@@ -486,11 +496,7 @@ namespace ProductManagementWebClient.Controllers
                     Availability = model.Availability
                 };
 
-                Console.WriteLine($"DTO data: {System.Text.Json.JsonSerializer.Serialize(updateProfileDto)}");
-
                 var response = await _apiHelper.PostAsync<ApiResponseDto>("api/WorkerApi/profile/update", updateProfileDto);
-
-                Console.WriteLine($"API response: Success={response?.Success}, Message={response?.Message}");
 
                 if (response?.Success == true)
                 {
@@ -503,8 +509,6 @@ namespace ProductManagementWebClient.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception in EditProfile: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 TempData["ErrorMessage"] = $"Đã xảy ra lỗi khi cập nhật hồ sơ: {ex.Message}";
                 return View(model);
             }

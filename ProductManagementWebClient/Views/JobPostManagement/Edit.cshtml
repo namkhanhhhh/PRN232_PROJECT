@@ -114,6 +114,40 @@
         .no-image.main {
             height: 180px;
         }
+
+    .category-selector {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 1rem;
+        background-color: #f9fafb;
+    }
+
+    .category-tree {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .category-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .category-parent {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.25rem;
+    }
+
+    .category-children {
+        margin-left: 1.5rem;
+    }
+
+    .category-child {
+        margin-bottom: 0.25rem;
+    }
+
+    .category-checkbox {
+        margin-right: 0.5rem;
+    }
 </style>
 
 <div class="form-container">
@@ -157,6 +191,20 @@
                         <i class="fas fa-map-marker-alt"></i> Địa điểm
                     </label>
                     <input asp-for="Location" class="form-control" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-tags"></i> Danh mục công việc
+                    </label>
+                    <div class="category-selector">
+                        <div id="categoryTree" class="category-tree">
+                            <!-- Categories will be loaded here via JavaScript -->
+                        </div>
+                    </div>
+                    <small class="form-text text-muted">Chọn một hoặc nhiều danh mục phù hợp với công việc</small>
                 </div>
             </div>
 
@@ -362,6 +410,9 @@
             </div>
         </div>
 
+        <!-- Hidden field for category IDs -->
+        <input type="hidden" id="selectedCategoryIds" name="selectedCategoryIds" />
+
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save"></i> Lưu thay đổi
@@ -372,3 +423,115 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        let selectedCategories = [];
+        const currentCategoryIds = '@ViewBag.CurrentCategoryIds';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Parse current category IDs
+            if (currentCategoryIds) {
+                selectedCategories = currentCategoryIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+            }
+
+            // Load job categories
+            loadJobCategories();
+
+            // Form submission handler
+            document.querySelector('form').addEventListener('submit', function (e) {
+                // Update hidden field with selected categories
+                document.getElementById('selectedCategoryIds').value = selectedCategories.join(',');
+            });
+        });
+
+        function loadJobCategories() {
+            fetch('/JobPostManagement/GetJobCategories')
+                .then(response => response.json())
+                .then(categories => {
+                    renderCategoryTree(categories);
+                })
+                .catch(error => {
+                    console.error('Error loading categories:', error);
+                    document.getElementById('categoryTree').innerHTML = '<p class="text-danger">Không thể tải danh mục. Vui lòng thử lại.</p>';
+                });
+        }
+
+        function renderCategoryTree(categories) {
+            const container = document.getElementById('categoryTree');
+            container.innerHTML = '';
+
+            categories.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category-item';
+
+                // Parent category
+                const parentDiv = document.createElement('div');
+                parentDiv.className = 'category-parent';
+
+                const parentCheckbox = document.createElement('input');
+                parentCheckbox.type = 'checkbox';
+                parentCheckbox.className = 'category-checkbox';
+                parentCheckbox.id = `category-${category.id}`;
+                parentCheckbox.value = category.id;
+                parentCheckbox.checked = selectedCategories.includes(category.id);
+                parentCheckbox.addEventListener('change', function () {
+                    handleCategorySelection(this);
+                });
+
+                const parentLabel = document.createElement('label');
+                parentLabel.htmlFor = `category-${category.id}`;
+                parentLabel.textContent = category.name;
+
+                parentDiv.appendChild(parentCheckbox);
+                parentDiv.appendChild(parentLabel);
+                categoryDiv.appendChild(parentDiv);
+
+                // Children categories
+                if (category.children && category.children.length > 0) {
+                    const childrenDiv = document.createElement('div');
+                    childrenDiv.className = 'category-children';
+
+                    category.children.forEach(child => {
+                        const childDiv = document.createElement('div');
+                        childDiv.className = 'category-child';
+
+                        const childCheckbox = document.createElement('input');
+                        childCheckbox.type = 'checkbox';
+                        childCheckbox.className = 'category-checkbox';
+                        childCheckbox.id = `category-${child.id}`;
+                        childCheckbox.value = child.id;
+                        childCheckbox.checked = selectedCategories.includes(child.id);
+                        childCheckbox.addEventListener('change', function () {
+                            handleCategorySelection(this);
+                        });
+
+                        const childLabel = document.createElement('label');
+                        childLabel.htmlFor = `category-${child.id}`;
+                        childLabel.textContent = child.name;
+
+                        childDiv.appendChild(childCheckbox);
+                        childDiv.appendChild(childLabel);
+                        childrenDiv.appendChild(childDiv);
+                    });
+
+                    categoryDiv.appendChild(childrenDiv);
+                }
+
+                container.appendChild(categoryDiv);
+            });
+        }
+
+        function handleCategorySelection(checkbox) {
+            const categoryId = parseInt(checkbox.value);
+
+            if (checkbox.checked) {
+                if (!selectedCategories.includes(categoryId)) {
+                    selectedCategories.push(categoryId);
+                }
+            } else {
+                selectedCategories = selectedCategories.filter(id => id !== categoryId);
+            }
+        }
+    </script>
+}

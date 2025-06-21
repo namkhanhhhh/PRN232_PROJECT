@@ -1,0 +1,407 @@
+﻿@model BusinessObjects.DTOs.CustomerService.UserPackagesDto
+@{
+    ViewData["Title"] = "Dịch vụ của tôi";
+    Layout = "~/Views/Shared/_JobPostManagementLayout.cshtml";
+}
+
+<style>
+    .packages-container {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .packages-header {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .balance-info {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        display: inline-block;
+        font-size: 16px;
+        font-weight: 600;
+        margin: 10px 5px;
+        min-width: 200px; /* FIX: Tăng width để hiển thị đủ 8 chữ số */
+    }
+
+    .btn-sync {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: 600;
+        margin: 10px 5px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-sync:hover {
+            background: linear-gradient(135deg, #138496, #0f6674);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .credits-summary {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .section-title {
+        color: #2c3e50;
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #3498db;
+        display: inline-block;
+    }
+
+    .credit-item {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 15px;
+        transition: transform 0.3s ease;
+    }
+
+        .credit-item:hover {
+            transform: translateY(-3px);
+        }
+
+    .credit-number {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        word-break: break-all; /* FIX: Cho phép break số dài */
+    }
+
+    .credit-label {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .packages-table {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table th {
+            background: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+            font-size: 14px;
+        }
+
+        .table td {
+            padding: 15px;
+            vertical-align: middle;
+            border-top: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-expired {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .days-remaining {
+        padding: 4px 8px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .days-positive {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .days-expired {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .days-permanent {
+        background: #cce7ff;
+        color: #004085;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        color: #6c757d;
+        margin-bottom: 20px;
+    }
+
+    .action-buttons {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    .btn-action {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0 10px;
+        transition: all 0.3s ease;
+        font-size: 16px;
+    }
+
+        .btn-action:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+        .btn-action.secondary {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+            .btn-action.secondary:hover {
+                background: linear-gradient(135deg, #e67e22, #d35400);
+            }
+</style>
+
+<div class="packages-container">
+    <div class="packages-header">
+        <h1 style="color: #2c3e50; margin-bottom: 10px;">
+            <i class="fas fa-box"></i> Dịch vụ của tôi
+        </h1>
+        <p style="color: #6c757d; margin-bottom: 15px;">Quản lý các gói dịch vụ và credits của bạn</p>
+        <div>
+            <div class="balance-info">
+                <!-- FIX: Hiển thị đầy đủ số tiền với format Việt Nam -->
+                <i class="fas fa-wallet"></i> Số dư: @(((decimal)Model.UserBalance).ToString("N0", new System.Globalization.CultureInfo("vi-VN"))) CD
+            </div>
+            <form method="post" asp-action="SyncPurchaseHistory" style="display: inline;">
+                <button type="submit" class="btn-sync">
+                    <i class="fas fa-sync"></i> Đồng bộ lịch sử
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Credits Summary -->
+    <div class="credits-summary">
+        <h2 class="section-title">
+            <i class="fas fa-coins"></i> Credits khả dụng
+        </h2>
+        <div class="row">
+            <div class="col-lg-2 col-md-4 col-6">
+                <div class="credit-item">
+                    <div class="credit-number">@Model.UserCredits.SilverPostsAvailable</div>
+                    <div class="credit-label">Tin bạc</div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <div class="credit-item">
+                    <div class="credit-number">@Model.UserCredits.GoldPostsAvailable</div>
+                    <div class="credit-label">Tin vàng</div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <div class="credit-item">
+                    <div class="credit-number">@Model.UserCredits.DiamondPostsAvailable</div>
+                    <div class="credit-label">Tin kim cương</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-6">
+                <div class="credit-item">
+                    <div class="credit-number">@Model.UserCredits.PushToTopAvailable</div>
+                    <div class="credit-label">Đẩy tin lên đầu</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-6">
+                <div class="credit-item">
+                    <div class="credit-number">@Model.UserCredits.AuthenLogoAvailable</div>
+                    <div class="credit-label">Huy hiệu xác thực</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Subscriptions -->
+    @if (Model.Subscriptions.Any())
+    {
+        <div class="packages-table">
+            <h2 class="section-title">
+                <i class="fas fa-crown"></i> Gói combo đang sử dụng
+            </h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tên gói</th>
+                            <th>Ngày bắt đầu</th>
+                            <th>Ngày kết thúc</th>
+                            <th>Thời gian còn lại</th>
+                            <th>Trạng thái</th>
+                            <th>Giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var subscription in Model.Subscriptions)
+                        {
+                            <tr>
+                                <td><strong>@subscription.PlanName</strong></td>
+                                <td>@subscription.StartDate.ToString("dd/MM/yyyy")</td>
+                                <td>@subscription.EndDate?.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (subscription.DaysRemaining > 0)
+                                    {
+                                        <span class="days-remaining days-positive">@subscription.DaysRemaining ngày</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="days-remaining days-expired">Hết hạn</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="status-badge @(subscription.Status == "active" ? "status-active" : "status-expired")">
+                                        @subscription.Status
+                                    </span>
+                                </td>
+                                <td><strong>@(((decimal)subscription.Price).ToString("N0", new System.Globalization.CultureInfo("vi-VN"))) CD</strong></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <!-- Additional Services -->
+    @if (Model.AdditionalServices.Any())
+    {
+        <div class="packages-table">
+            <h2 class="section-title">
+                <i class="fas fa-plus-circle"></i> Dịch vụ bổ sung
+            </h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tên dịch vụ</th>
+                            <th>Ngày bắt đầu</th>
+                            <th>Ngày kết thúc</th>
+                            <th>Thời gian còn lại</th>
+                            <th>Trạng thái</th>
+                            <th>Giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var service in Model.AdditionalServices)
+                        {
+                            <tr>
+                                <td><strong>@service.ServiceName</strong></td>
+                                <td>@service.StartDate.ToString("dd/MM/yyyy")</td>
+                                <td>@(service.EndDate?.ToString("dd/MM/yyyy") ?? "Vĩnh viễn")</td>
+                                <td>
+                                    @if (service.DaysRemaining.HasValue)
+                                    {
+                                        if (service.DaysRemaining > 0)
+                                        {
+                                            <span class="days-remaining days-positive">@service.DaysRemaining ngày</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="days-remaining days-expired">Hết hạn</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="days-remaining days-permanent">Vĩnh viễn</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="status-badge @(service.Status == "active" ? "status-active" : "status-expired")">
+                                        @service.Status
+                                    </span>
+                                </td>
+                                <td><strong>@(((decimal)service.Price).ToString("N0", new System.Globalization.CultureInfo("vi-VN"))) CD</strong></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @if (!Model.Subscriptions.Any() && !Model.AdditionalServices.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <h3 style="color: #6c757d; margin-bottom: 15px;">Chưa có gói dịch vụ nào</h3>
+            <p style="color: #6c757d; margin-bottom: 25px;">
+                Bạn chưa mua gói dịch vụ nào. Hãy chọn gói phù hợp để tăng hiệu quả tuyển dụng.
+            </p>
+            <a href="@Url.Action("Index")" class="btn-action">
+                <i class="fas fa-shopping-cart"></i> Mua dịch vụ ngay
+            </a>
+        </div>
+    }
+
+    <div class="action-buttons">
+        <a href="@Url.Action("Index")" class="btn-action">
+            <i class="fas fa-shopping-cart"></i> Mua thêm dịch vụ
+        </a>
+        <a href="@Url.Action("Balance", "Credit")" class="btn-action secondary">
+            <i class="fas fa-plus"></i> Nạp tiền
+        </a>
+    </div>
+</div>

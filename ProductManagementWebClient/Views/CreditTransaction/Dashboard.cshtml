@@ -1,0 +1,328 @@
+﻿@model BusinessObjects.DTOs.CreditTransaction.CreditTransactionDashboardDto
+@{
+    ViewData["Title"] = "Dashboard Giao Dịch Credit";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Tổng Giao Dịch</h6>
+                        <h3 class="mb-0">@Model.TotalTransactionCount</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-receipt fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Tổng Nạp Tiền</h6>
+                        <h3 class="mb-0">@Model.TotalTopupAmount.ToString("N0")</h3>
+                        <small>VNĐ</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-arrow-up-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Tổng Chi Tiêu</h6>
+                        <h3 class="mb-0">@Model.TotalSpentAmount.ToString("N0")</h3>
+                        <small>VNĐ</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-arrow-down-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">Người Dùng Hoạt Động</h6>
+                        <h3 class="mb-0">@Model.ActiveUsersCount</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Monthly Transactions Chart -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Giao Dịch Theo Tháng
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Types Chart -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pie-chart me-2"></i>
+                    Loại Giao Dịch
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="transactionTypeChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Top Users -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-trophy me-2"></i>
+                    Top Người Dùng Nạp Tiền
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Người dùng</th>
+                                <th>Email</th>
+                                <th>Tổng nạp</th>
+                                <th>Số GD</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.TopUsers.Count; i++)
+                            {
+                                var user = Model.TopUsers[i];
+                                <tr>
+                                    <td>
+                                        @if (i == 0)
+                                        {
+                                            <i class="bi bi-trophy-fill text-warning"></i>
+                                        }
+                                        else if (i == 1)
+                                        {
+                                            <i class="bi bi-trophy-fill text-secondary"></i>
+                                        }
+                                        else if (i == 2)
+                                        {
+                                            <i class="bi bi-trophy-fill text-danger"></i>
+                                        }
+                                        else
+                                        {
+                                            <span>@(i + 1)</span>
+                                        }
+                                    </td>
+                                    <td>@user.Username</td>
+                                    <td>@user.Email</td>
+                                    <td>
+                                        <span class="text-success fw-bold">
+                                            @user.TotalAmount.ToString("N0") VNĐ
+                                        </span>
+                                    </td>
+                                    <td>@user.TransactionCount</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Giao Dịch Gần Đây
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Người dùng</th>
+                                <th>Số tiền</th>
+                                <th>Loại</th>
+                                <th>Ngày</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transaction in Model.RecentTransactions)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-action="Details" asp-route-id="@transaction.Id" class="text-decoration-none">
+                                            @transaction.Id
+                                        </a>
+                                    </td>
+                                    <td>@transaction.Username</td>
+                                    <td>
+                                        <span class="@(transaction.Amount >= 0 ? "text-success" : "text-danger")">
+                                            @transaction.Amount.ToString("N0")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(transaction.TransactionType == "Topup" || transaction.TransactionType == "NapTien" ? "badge-success" : "badge-warning")">
+                                            @transaction.TransactionType
+                                        </span>
+                                    </td>
+                                    <td>@transaction.CreatedAt.ToString("dd/MM HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a asp-action="Index" class="btn btn-outline-primary btn-sm">
+                        Xem Tất Cả
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Get percentage data from server
+        var transactionTypePercentages = @Html.Raw(Json.Serialize(Model.TransactionTypes.Select(t => t.Percentage)));
+
+        // Monthly Transactions Chart
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        const monthlyChart = new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.MonthlyTransactions.Select(m => m.Month))),
+                datasets: [{
+                    label: 'Số tiền (VNĐ)',
+                    data: @Html.Raw(Json.Serialize(Model.MonthlyTransactions.Select(m => m.Amount))),
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }, {
+                    label: 'Số giao dịch',
+                    data: @Html.Raw(Json.Serialize(Model.MonthlyTransactions.Select(m => m.Count))),
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.1,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Tháng'
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Số tiền (VNĐ)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Số giao dịch'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                    }
+                }
+            }
+        });
+
+        // Transaction Types Chart
+        const typeCtx = document.getElementById('transactionTypeChart').getContext('2d');
+        const typeChart = new Chart(typeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.TransactionTypes.Select(t => t.Type))),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.TransactionTypes.Select(t => t.Amount))),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF',
+                        '#FF9F40'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipContext) {
+                                const label = tooltipContext.label || '';
+                                const value = tooltipContext.parsed;
+                                const percentage = transactionTypePercentages[tooltipContext.dataIndex];
+                                return label + ': ' + value.toLocaleString() + ' VNĐ (' + percentage.toFixed(1) + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

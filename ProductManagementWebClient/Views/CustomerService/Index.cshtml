@@ -1,0 +1,296 @@
+﻿@model BusinessObjects.DTOs.CustomerService.CustomerServiceIndexDto
+@{
+    ViewData["Title"] = "Dịch vụ khách hàng";
+    Layout = "~/Views/Shared/_JobPostManagementLayout.cshtml";
+}
+
+<style>
+    .services-container {
+        background: #f8f9fa;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .services-header {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .balance-info {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        display: inline-block;
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 15px;
+        min-width: 200px; /* FIX: Tăng width để hiển thị đủ 8 chữ số */
+    }
+
+    .services-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .section-title {
+        color: #2c3e50;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #3498db;
+        display: inline-block;
+    }
+
+    .service-card, .combo-card {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+        .service-card:hover, .combo-card:hover {
+            border-color: #3498db;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+    .service-name, .combo-name {
+        color: #2c3e50;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .service-description, .combo-description {
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+
+    .service-price, .combo-price {
+        color: #e74c3c;
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .service-details, .combo-details {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .detail-label {
+        color: #6c757d;
+    }
+
+    .detail-value {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .btn-buy {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        transition: all 0.3s ease;
+        font-size: 16px;
+    }
+
+        .btn-buy:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+    .combo-features {
+        background: #e8f5e8;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #2c3e50;
+    }
+
+        .feature-item i {
+            color: #28a745;
+            margin-right: 8px;
+            width: 16px;
+        }
+</style>
+
+<div class="services-container">
+    <div class="services-header">
+        <h1 style="color: #2c3e50; margin-bottom: 10px;">
+            <i class="fas fa-store"></i> Dịch vụ khách hàng
+        </h1>
+        <p style="color: #6c757d; margin-bottom: 0;">Chọn gói dịch vụ phù hợp để tăng hiệu quả tuyển dụng</p>
+        <div class="balance-info">
+            <!-- FIX: Hiển thị đầy đủ số tiền với format Việt Nam -->
+            <i class="fas fa-wallet"></i> Số dư hiện tại: @(((decimal)Model.UserBalance).ToString("N0", new System.Globalization.CultureInfo("vi-VN"))) CD
+        </div>
+    </div>
+
+    <!-- Subscription Plans -->
+    @if (Model.SubscriptionPlans.Any())
+    {
+        <div class="services-section">
+            <h2 class="section-title">
+                <i class="fas fa-crown"></i> Gói combo tiết kiệm
+            </h2>
+            <div class="row">
+                @foreach (var combo in Model.SubscriptionPlans)
+                {
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="combo-card">
+                            <div class="combo-name">@combo.Name</div>
+                            <div class="combo-description">@combo.Description</div>
+                            <div class="combo-price">
+                                @(((decimal)combo.Price).ToString("N0", new System.Globalization.CultureInfo("vi-VN"))) CD
+                            </div>
+
+                            <div class="combo-features">
+                                <div class="feature-item">
+                                    <i class="fas fa-star"></i>
+                                    <span>@combo.SilverPosts tin bạc</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-star"></i>
+                                    <span>@combo.GoldPosts tin vàng</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-gem"></i>
+                                    <span>@combo.DiamondPosts tin kim cương</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>@combo.PushTopTimes lần đẩy tin</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>Thời hạn: @combo.DurationDays ngày</span>
+                                </div>
+                                @if (combo.MarketingPackage == true)
+                                {
+                                    <div class="feature-item">
+                                        <i class="fas fa-bullhorn"></i>
+                                        <span>Gói marketing</span>
+                                    </div>
+                                }
+                            </div>
+
+                            <a href="@Url.Action("Buy", new { id = combo.Id, type = "combo" })" class="btn-buy">
+                                <i class="fas fa-shopping-cart"></i> Mua ngay
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Additional Services -->
+    @if (Model.AdditionalServices.Any())
+    {
+        <div class="services-section">
+            <h2 class="section-title">
+                <i class="fas fa-plus-circle"></i> Dịch vụ bổ sung
+            </h2>
+            <div class="row">
+                @foreach (var service in Model.AdditionalServices)
+                {
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="service-card">
+                            <div class="service-name">@service.Name</div>
+                            <div class="service-description">@service.Description</div>
+                            <div class="service-price">
+                                @(((decimal)service.Price).ToString("N0", new System.Globalization.CultureInfo("vi-VN"))) CD
+                            </div>
+
+                            <div class="service-details">
+                                @if (service.DurationDays.HasValue)
+                                {
+                                    <div class="detail-item">
+                                        <span class="detail-label">Thời hạn:</span>
+                                        <span class="detail-value">@service.DurationDays ngày</span>
+                                    </div>
+                                }
+                                <div class="detail-item">
+                                    <span class="detail-label">Loại dịch vụ:</span>
+                                    <span class="detail-value">
+                                        @switch (service.ServiceType?.ToLower())
+                                        {
+                                            case "silver_post":
+                                                @:Tin bạc
+                                                break;
+                                            case "gold_post":
+                                                @:Tin vàng
+                                                break;
+                                            case "diamond_post":
+                                                @:Tin kim cương
+                                                break;
+                                            case "push_to_top":
+                                                @:Đẩy tin lên đầu
+                                                break;
+                                            case "verified_badge":
+                                                @:Huy hiệu xác thực
+                                                break;
+                                            case "marketing_package":
+                                                @:Gói marketing
+                                                break;
+                                            case "banner":
+                                                @:Banner quảng cáo
+                                                break;
+                                            default:
+                                                @service.ServiceType
+                                                break;
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+
+                            <a href="@Url.Action("Buy", new { id = service.Id, type = "service" })" class="btn-buy">
+                                <i class="fas fa-shopping-cart"></i> Mua ngay
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

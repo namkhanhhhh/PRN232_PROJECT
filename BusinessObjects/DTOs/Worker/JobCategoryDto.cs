@@ -7,6 +7,6 @@
         public string? Description { get; set; }
         public int? ParentId { get; set; }
         public DateTime? CreatedAt { get; set; }
-        public int JobCount { get; set; } // For featured categories
+        public int JobCount { get; set; }
     }
 }

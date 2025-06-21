@@ -1,6 +1,12 @@
-﻿using System.Net.Http.Headers;
+﻿using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 
 namespace ProductManagementWebClient.Helpers
 {
@@ -218,6 +224,13 @@ namespace ProductManagementWebClient.Helpers
         {
             _httpClient.DefaultRequestHeaders.Authorization = null;
             Console.WriteLine("Authorization header cleared");
+        }
+
+        // Add method to get HttpClient for multipart requests
+        public HttpClient GetHttpClient()
+        {
+            AddAuthorizationHeader();
+            return _httpClient;
         }
     }
 }

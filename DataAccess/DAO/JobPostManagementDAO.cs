@@ -1,4 +1,5 @@
 ﻿using BusinessObjects.Models;
+using BusinessObjects.DTOs.JobPost;
 using Microsoft.EntityFrameworkCore;
 
 namespace DataAccess.DAO
@@ -16,10 +17,9 @@ namespace DataAccess.DAO
         {
             return await _context.JobPosts
                 .Include(jp => jp.User)
-                .ThenInclude(u => u.UserDetails)
-                .Include(jp => jp.JobPostCategories)
-                .ThenInclude(jpc => jpc.Category)
                 .Include(jp => jp.Applications)
+                .Include(jp => jp.JobPostCategories)
+                    .ThenInclude(jpc => jpc.Category)
                 .Where(jp => jp.UserId == employerId)
                 .OrderByDescending(jp => jp.CreatedAt)
                 .ToListAsync();
@@ -29,24 +29,51 @@ namespace DataAccess.DAO
         {
             return await _context.JobPosts
                 .Include(jp => jp.User)
-                .ThenInclude(u => u.UserDetails)
-                .Include(jp => jp.JobPostCategories)
-                .ThenInclude(jpc => jpc.Category)
                 .Include(jp => jp.Applications)
+                .Include(jp => jp.JobPostCategories)
+                    .ThenInclude(jpc => jpc.Category)
                 .FirstOrDefaultAsync(jp => jp.Id == id);
         }
 
         public async Task<bool> CreateJobPostAsync(JobPost jobPost)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                jobPost.CreatedAt = DateTime.Now;
                 jobPost.Status = "active";
+                jobPost.CreatedAt = DateTime.Now;
                 jobPost.ViewCount = 0;
-                jobPost.PriorityLevel = 0;
                 jobPost.IsFeatured = false;
 
                 _context.JobPosts.Add(jobPost);
+                await _context.SaveChangesAsync();
+
+                // Add categories if provided
+                if (jobPost.JobPostCategories?.Any() == true)
+                {
+                    foreach (var category in jobPost.JobPostCategories)
+                    {
+                        category.JobPostId = jobPost.Id;
+                        category.CreatedAt = DateTime.Now;
+                    }
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateJobPostAsync(JobPost jobPost)
+        {
+            try
+            {
+                _context.JobPosts.Update(jobPost);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -56,34 +83,64 @@ namespace DataAccess.DAO
             }
         }
 
-        public async Task<bool> UpdateJobPostAsync(JobPost jobPost)
+        public async Task<bool> UpdateJobPostWithCategoriesAsync(JobPostUpdateDto jobPostDto)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var existingJobPost = await _context.JobPosts.FindAsync(jobPost.Id);
+                var existingJobPost = await _context.JobPosts
+                    .Include(jp => jp.JobPostCategories)
+                    .FirstOrDefaultAsync(jp => jp.Id == jobPostDto.Id);
+
                 if (existingJobPost == null) return false;
 
-                existingJobPost.Title = jobPost.Title;
-                existingJobPost.Description = jobPost.Description;
-                existingJobPost.Requirements = jobPost.Requirements;
-                existingJobPost.Benefits = jobPost.Benefits;
-                existingJobPost.Location = jobPost.Location;
-                existingJobPost.SalaryMin = jobPost.SalaryMin;
-                existingJobPost.SalaryMax = jobPost.SalaryMax;
-                existingJobPost.JobType = jobPost.JobType;
-                existingJobPost.ExperienceLevel = jobPost.ExperienceLevel;
-                existingJobPost.Deadline = jobPost.Deadline;
-                existingJobPost.Status = jobPost.Status;
-                existingJobPost.ImageMain = jobPost.ImageMain;
-                existingJobPost.Image2 = jobPost.Image2;
-                existingJobPost.Image3 = jobPost.Image3;
-                existingJobPost.Image4 = jobPost.Image4;
+                // Update job post properties
+                existingJobPost.Title = jobPostDto.Title;
+                existingJobPost.Description = jobPostDto.Description;
+                existingJobPost.Requirements = jobPostDto.Requirements;
+                existingJobPost.Benefits = jobPostDto.Benefits;
+                existingJobPost.Location = jobPostDto.Location;
+                existingJobPost.SalaryMin = jobPostDto.SalaryMin;
+                existingJobPost.SalaryMax = jobPostDto.SalaryMax;
+                existingJobPost.JobType = jobPostDto.JobType;
+                existingJobPost.ExperienceLevel = jobPostDto.ExperienceLevel;
+                existingJobPost.Deadline = jobPostDto.Deadline;
+                existingJobPost.ImageMain = jobPostDto.ImageMain;
+                existingJobPost.Image2 = jobPostDto.Image2;
+                existingJobPost.Image3 = jobPostDto.Image3;
+                existingJobPost.Image4 = jobPostDto.Image4;
+                existingJobPost.Status = jobPostDto.Status;
+
+                // Update categories
+                if (jobPostDto.CategoryIds?.Any() == true)
+                {
+                    // Remove existing categories
+                    _context.JobPostCategories.RemoveRange(existingJobPost.JobPostCategories);
+
+                    // Add new categories
+                    foreach (var categoryId in jobPostDto.CategoryIds)
+                    {
+                        existingJobPost.JobPostCategories.Add(new JobPostCategory
+                        {
+                            JobPostId = jobPostDto.Id,
+                            CategoryId = categoryId,
+                            CreatedAt = DateTime.Now
+                        });
+                    }
+                }
+                else
+                {
+                    // Remove all categories if none selected
+                    _context.JobPostCategories.RemoveRange(existingJobPost.JobPostCategories);
+                }
 
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
                 return true;
             }
             catch
             {
+                await transaction.RollbackAsync();
                 return false;
             }
         }
@@ -93,11 +150,13 @@ namespace DataAccess.DAO
             try
             {
                 var jobPost = await _context.JobPosts.FindAsync(id);
-                if (jobPost == null) return false;
-
-                jobPost.Status = jobPost.Status?.ToLower() == "active" ? "inactive" : "active";
-                await _context.SaveChangesAsync();
-                return true;
+                if (jobPost != null)
+                {
+                    jobPost.Status = "inactive";
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+                return false;
             }
             catch
             {
@@ -107,10 +166,8 @@ namespace DataAccess.DAO
 
         public async Task<bool> AddCreditTransactionAsync(int userId, decimal amount, string transactionType, string description)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Get current user credit balance
                 var userCredit = await _context.UserCredits.FirstOrDefaultAsync(uc => uc.UserId == userId);
                 if (userCredit == null)
                 {
@@ -123,29 +180,26 @@ namespace DataAccess.DAO
                     _context.UserCredits.Add(userCredit);
                 }
 
-                var previousBalance = userCredit.Balance ?? 0;
-                userCredit.Balance = previousBalance + amount;
+                var newBalance = userCredit.Balance + amount;
+                userCredit.Balance = newBalance;
                 userCredit.LastUpdated = DateTime.Now;
 
-                // Add credit transaction record
-                var creditTransaction = new CreditTransaction
+                var transaction = new CreditTransaction
                 {
                     UserId = userId,
                     Amount = amount,
                     TransactionType = transactionType,
+                    BalanceAfter = newBalance,
                     Description = description,
-                    BalanceAfter = userCredit.Balance ?? 0,
                     CreatedAt = DateTime.Now
                 };
 
-                _context.CreditTransactions.Add(creditTransaction);
+                _context.CreditTransactions.Add(transaction);
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
                 return true;
             }
             catch
             {
-                await transaction.RollbackAsync();
                 return false;
             }
         }
@@ -153,7 +207,9 @@ namespace DataAccess.DAO
         public async Task<List<JobCategory>> GetJobCategoriesAsync()
         {
             return await _context.JobCategories
-                .Where(c => c.ParentId == null)
+                .Include(c => c.InverseParent)
+                .OrderBy(c => c.ParentId)
+                .ThenBy(c => c.Name)
                 .ToListAsync();
         }
 
@@ -172,21 +228,9 @@ namespace DataAccess.DAO
 
                 if (userPostCredit == null)
                 {
-                    // Create default credits if not exists
-                    userPostCredit = new UserPostCredit
-                    {
-                        UserId = userId,
-                        SilverPostsAvailable = 0,
-                        GoldPostsAvailable = 0,
-                        DiamondPostsAvailable = 0,
-                        AuthenLogoAvailable = 0,
-                        PushToTopAvailable = 0,
-                        LastUpdated = DateTime.Now
-                    };
-                    _context.UserPostCredits.Add(userPostCredit);
+                    return false;
                 }
 
-                // Deduct based on post type
                 switch (postType.ToLower())
                 {
                     case "silver":

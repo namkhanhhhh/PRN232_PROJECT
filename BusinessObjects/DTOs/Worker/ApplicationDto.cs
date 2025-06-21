@@ -27,5 +27,7 @@ namespace BusinessObjects.DTOs.Worker
         // Employer info
         public string EmployerName { get; set; } = null!;
         public string? EmployerAvatar { get; set; }
+
+        public string? JobImageMain { get; set; }
     }
 }

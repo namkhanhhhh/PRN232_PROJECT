@@ -9,12 +9,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repository.Interfaces;
 using System.Security.Claims;
+using System.Linq;
 
 namespace Sjob_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Add JWT authorization to the entire controller
+    [Authorize]
     public class JobPostManagementApiController : ControllerBase
     {
         private readonly IJobPostManagementRepository _jobPostManagementRepository;
@@ -30,7 +31,6 @@ namespace Sjob_API.Controllers
         {
             try
             {
-                // Check if user can access this employer's data
                 var currentUserId = GetCurrentUserId();
                 var currentUserRole = GetCurrentUserRole();
 
@@ -102,7 +102,6 @@ namespace Sjob_API.Controllers
 
                 if (userPostCredits == null)
                 {
-                    // Return default credits if not found
                     return Ok(new ApiResponseDto<UserPostCreditsDto>
                     {
                         Success = true,
@@ -205,6 +204,40 @@ namespace Sjob_API.Controllers
             }
         }
 
+        [HttpGet("{id}/categories")]
+        public async Task<ActionResult<ApiResponseDto<List<int>>>> GetJobPostCategories(int id)
+        {
+            try
+            {
+                var jobPost = await _jobPostManagementRepository.GetJobPostByIdAsync(id);
+                if (jobPost == null)
+                {
+                    return NotFound(new ApiResponseDto<List<int>>
+                    {
+                        Success = false,
+                        Message = "Job post not found"
+                    });
+                }
+
+                var categoryIds = jobPost.JobPostCategories?.Select(jpc => jpc.CategoryId).ToList() ?? new List<int>();
+
+                return Ok(new ApiResponseDto<List<int>>
+                {
+                    Success = true,
+                    Data = categoryIds,
+                    Message = "Job post categories retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDto<List<int>>
+                {
+                    Success = false,
+                    Message = $"Error retrieving job post categories: {ex.Message}"
+                });
+            }
+        }
+
         [HttpPost]
         [Authorize(Roles = "Employer")]
         public async Task<ActionResult<ApiResponseDto<bool>>> CreateJobPost([FromBody] JobPostCreateDto jobPostDto)
@@ -220,14 +253,12 @@ namespace Sjob_API.Controllers
                     });
                 }
 
-                // Ensure user can only create job posts for themselves
                 var currentUserId = GetCurrentUserId();
                 if (jobPostDto.UserId != currentUserId)
                 {
                     return Forbid();
                 }
 
-                // Check if user has enough credits
                 var canDeduct = await _jobPostManagementRepository.DeductPostCreditAsync(currentUserId, jobPostDto.PostType);
                 if (!canDeduct)
                 {
@@ -257,6 +288,16 @@ namespace Sjob_API.Controllers
                     Image4 = jobPostDto.Image4,
                     PostType = jobPostDto.PostType
                 };
+
+                // Add categories
+                if (jobPostDto.CategoryIds?.Any() == true)
+                {
+                    jobPost.JobPostCategories = jobPostDto.CategoryIds.Select(categoryId => new JobPostCategory
+                    {
+                        CategoryId = categoryId,
+                        CreatedAt = DateTime.Now
+                    }).ToList();
+                }
 
                 var result = await _jobPostManagementRepository.CreateJobPostAsync(jobPost);
 
@@ -291,33 +332,7 @@ namespace Sjob_API.Controllers
                     });
                 }
 
-                var existingJobPost = await _jobPostManagementRepository.GetJobPostByIdAsync(id);
-                if (existingJobPost == null)
-                {
-                    return NotFound(new ApiResponseDto<bool>
-                    {
-                        Success = false,
-                        Message = "Job post not found"
-                    });
-                }
-
-                existingJobPost.Title = jobPostDto.Title;
-                existingJobPost.Description = jobPostDto.Description;
-                existingJobPost.Requirements = jobPostDto.Requirements;
-                existingJobPost.Benefits = jobPostDto.Benefits;
-                existingJobPost.Location = jobPostDto.Location;
-                existingJobPost.SalaryMin = jobPostDto.SalaryMin;
-                existingJobPost.SalaryMax = jobPostDto.SalaryMax;
-                existingJobPost.JobType = jobPostDto.JobType;
-                existingJobPost.ExperienceLevel = jobPostDto.ExperienceLevel;
-                existingJobPost.Deadline = jobPostDto.Deadline;
-                existingJobPost.ImageMain = jobPostDto.ImageMain;
-                existingJobPost.Image2 = jobPostDto.Image2;
-                existingJobPost.Image3 = jobPostDto.Image3;
-                existingJobPost.Image4 = jobPostDto.Image4;
-                existingJobPost.Status = jobPostDto.Status;
-
-                var result = await _jobPostManagementRepository.UpdateJobPostAsync(existingJobPost);
+                var result = await _jobPostManagementRepository.UpdateJobPostWithCategoriesAsync(jobPostDto);
 
                 return Ok(new ApiResponseDto<bool>
                 {
@@ -387,19 +402,32 @@ namespace Sjob_API.Controllers
         }
 
         [HttpGet("categories")]
-        public async Task<ActionResult<ApiResponseDto<List<JobCategoryDto>>>> GetJobCategories()
+        public async Task<ActionResult<ApiResponseDto<List<JobCategoryHierarchyDto>>>> GetJobCategories()
         {
             try
             {
                 var categories = await _jobPostManagementRepository.GetJobCategoriesAsync();
-                var categoryDtos = categories.Select(c => new JobCategoryDto
+
+                // Build hierarchy
+                var parentCategories = categories.Where(c => c.ParentId == null).ToList();
+                var categoryDtos = parentCategories.Select(c => new JobCategoryHierarchyDto
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Description = c.Description
+                    Description = c.Description,
+                    ParentId = c.ParentId,
+                    Children = categories.Where(child => child.ParentId == c.Id)
+                        .Select(child => new JobCategoryHierarchyDto
+                        {
+                            Id = child.Id,
+                            Name = child.Name,
+                            Description = child.Description,
+                            ParentId = child.ParentId,
+                            Children = new List<JobCategoryHierarchyDto>()
+                        }).ToList()
                 }).ToList();
 
-                return Ok(new ApiResponseDto<List<JobCategoryDto>>
+                return Ok(new ApiResponseDto<List<JobCategoryHierarchyDto>>
                 {
                     Success = true,
                     Data = categoryDtos,
@@ -408,7 +436,7 @@ namespace Sjob_API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ApiResponseDto<List<JobCategoryDto>>
+                return StatusCode(500, new ApiResponseDto<List<JobCategoryHierarchyDto>>
                 {
                     Success = false,
                     Message = $"Error retrieving job categories: {ex.Message}"
@@ -435,5 +463,14 @@ namespace Sjob_API.Controllers
         public decimal Amount { get; set; }
         public string TransactionType { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+    }
+
+    public class JobCategoryHierarchyDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public int? ParentId { get; set; }
+        public List<JobCategoryHierarchyDto> Children { get; set; } = new List<JobCategoryHierarchyDto>();
     }
 }

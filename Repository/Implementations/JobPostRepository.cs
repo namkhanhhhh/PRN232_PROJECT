@@ -33,6 +33,11 @@ namespace Repository.Implementations
             return await _jobPostDAO.GetFeaturedCategoriesAsync(count);
         }
 
+        public async Task<List<JobCategory>> GetCategoriesWithChildrenAsync()
+        {
+            return await _jobPostDAO.GetCategoriesWithChildrenAsync();
+        }
+
         public async Task<List<JobPost>> GetDiamondPostsAsync(int count = 6)
         {
             return await _jobPostDAO.GetDiamondPostsAsync(count);
@@ -41,6 +46,16 @@ namespace Repository.Implementations
         public async Task<List<JobPost>> GetMostViewedPostsAsync(int count = 6)
         {
             return await _jobPostDAO.GetMostViewedPostsAsync(count);
+        }
+
+        public async Task<List<JobPost>> GetAllJobsAsync(int page, int pageSize)
+        {
+            return await _jobPostDAO.GetAllJobsAsync(page, pageSize);
+        }
+
+        public async Task<int> GetAllJobsCountAsync()
+        {
+            return await _jobPostDAO.GetAllJobsCountAsync();
         }
 
         public async Task<List<JobPost>> GetRelatedJobsAsync(int jobId, List<int> categoryIds, int count = 4)

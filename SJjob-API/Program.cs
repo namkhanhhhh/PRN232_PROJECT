@@ -8,14 +8,13 @@ using Microsoft.OpenApi.Models;
 using Net.payOS;
 using Repository.Implementations;
 using Repository.Interfaces;
+using SJjob_API.Middleware;
+using SJjob_API.Services;
 using Sjob_API.Services;
 using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -96,6 +95,8 @@ builder.Services.AddScoped<JobPostManagementDAO>();
 builder.Services.AddScoped<EmployerDAO>();
 builder.Services.AddScoped<ApplicationManagementDAO>();
 builder.Services.AddScoped<CreditDAO>();
+builder.Services.AddScoped<CustomerServiceDAO>();
+builder.Services.AddScoped<CreditTransactionDAO>();
 
 // Register Repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -108,10 +109,14 @@ builder.Services.AddScoped<IJobPostManagementRepository, JobPostManagementReposi
 builder.Services.AddScoped<IEmployerRepository, EmployerRepository>();
 builder.Services.AddScoped<IApplicationManagementRepository, ApplicationManagementRepository>();
 builder.Services.AddScoped<ICreditRepository, CreditRepository>();
+builder.Services.AddScoped<ICustomerServiceRepository, CustomerServiceRepository>();
+builder.Services.AddScoped<ICreditTransactionRepository, CreditTransactionRepository>();
 
 
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddHostedService<ExpiredSubscriptionService>();
+
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -159,7 +164,7 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication(); // Add this line
 app.UseAuthorization();
-
+app.UseMiddleware<ExpiredSubscriptionMiddleware>();
 app.MapControllers();
 
 app.Run();

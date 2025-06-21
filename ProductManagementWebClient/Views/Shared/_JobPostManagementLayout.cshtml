@@ -48,8 +48,14 @@
         border-radius: 6px;
         font-weight: 600;
         font-size: 14px;
-        min-width: 80px;
+        min-width: 120px;
         text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .balance-amount.updating {
+        background: #ffc107;
+        animation: pulse 1s infinite;
     }
 
     .btn-deposit {
@@ -85,6 +91,67 @@
             background: #f8f9fa;
             border-color: #adb5bd;
         }
+
+    /* Enhanced submenu styles */
+    .sidebar-nav .nav-item {
+        position: relative;
+    }
+
+    .sidebar-nav .sub-menu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        background: rgba(0, 0, 0, 0.1);
+        margin-left: 0;
+        padding-left: 0;
+    }
+
+    .sidebar-nav .nav-item.expanded .sub-menu {
+        max-height: 200px;
+    }
+
+    .sidebar-nav .sub-menu .nav-item {
+        padding-left: 20px;
+    }
+
+    .sidebar-nav .sub-menu .nav-link {
+        padding: 8px 15px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+        .sidebar-nav .sub-menu .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+    .sidebar-nav .sub-menu .nav-item.active .nav-link {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-weight: 600;
+        
+    }
+
+    /* Parent menu item with submenu indicator */
+    .sidebar-nav .nav-item:has(.sub-menu) > .nav-link::after {
+        content: '\f107';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        float: right;
+        transition: transform 0.3s ease;
+        padding-left: 60px;
+    }
+
+
+    /* Customer Service specific styles */
+    .customer-service-menu {
+        margin: 5px 0;
+    }
+
+        .customer-service-menu .nav-link {
+            color: white !important;
+            font-weight: 500;
+        }
 </style>
 
 <body>
@@ -116,33 +183,39 @@
                             <span>Quản lý ứng viên</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item customer-service-menu @(ViewContext.RouteData.Values["controller"].ToString() == "CustomerService" ? "expanded active" : "")">
                         <a href="#" class="nav-link">
                             <i class="fas fa-box-open"></i>
                             <span>Quản lý dịch vụ</span>
                         </a>
                         <ul class="sub-menu">
-                            <li class="nav-item">
+                            <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "CustomerService" && ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")">
                                 <a href="/CustomerService/Index" class="nav-link">
-                                    <i class="fas fa-cart-plus"></i>
+                                    <i class="fas fa-shopping-cart"></i>
                                     <span>Mua dịch vụ</span>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "CustomerService" && ViewContext.RouteData.Values["action"].ToString() == "UserPackages" ? "active" : "")">
                                 <a href="/CustomerService/UserPackages" class="nav-link">
-                                    <i class="fas fa-bag-shopping"></i>
+                                    <i class="fas fa-box"></i>
                                     <span>Dịch vụ của tôi</span>
+                                </a>
+                            </li>
+                            <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "CustomerService" && ViewContext.RouteData.Values["action"].ToString() == "Buy" ? "active" : "")">
+                                <a href="/CustomerService" class="nav-link">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Thanh toán</span>
                                 </a>
                             </li>
                         </ul>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Employer" && ViewContext.RouteData.Values["action"].ToString() == "Profile" ? "active" : "")">
                         <a href="/Employer/Profile" class="nav-link">
                             <i class="fas fa-gear"></i>
                             <span>Cài đặt tài khoản</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item @(ViewContext.RouteData.Values["controller"].ToString() == "Employer" && ViewContext.RouteData.Values["action"].ToString() == "History" ? "active" : "")">
                         <a href="/Employer/History" class="nav-link">
                             <i class="fas fa-clock-rotate-left"></i>
                             <span>Lịch sử giao dịch</span>
@@ -165,20 +238,20 @@
         <main class="main-wrapper">
             <div class="top-bar">
                 <div class="balance-display">
-                    <span class="balance-amount">
+                    <span class="balance-amount" id="balance-display">
                         @{
                             var userId = Context.Session.GetInt32("UserId");
                             var credit = HttpContextAccessor.HttpContext.Session.GetInt32("credit");
                             if (userId != null)
-                                {
+                            {
                                 var balance = credit ?? 0;
-                                    var formattedBalance = ((decimal)balance).ToString("N0", new System.Globalization.CultureInfo("vi-VN"));
-                                    @formattedBalance
-                                }
-                                else
-                                {
-                                    @:0
-                                } 
+                                var formattedBalance = ((decimal)balance).ToString("N0", new System.Globalization.CultureInfo("vi-VN"));
+                                @formattedBalance
+                            }
+                            else
+                            {
+                                @:0
+                            } 
                         } CD
                     </span>
                     <a href="/Credit/Deposit" class="btn-deposit">
@@ -195,7 +268,7 @@
                         <li><a class="dropdown-item" href="/Employer/Profile"><i class="fas fa-user"></i> Hồ sơ</a></li>
                         <li><a class="dropdown-item" href="/Employer/EditProfile"><i class="fas fa-edit"></i> Chỉnh sửa thông tin</a></li>
                         <li><a class="dropdown-item" href="/Employer/ChangePassword"><i class="fas fa-key"></i> Đổi mật khẩu</a></li>
-                        <li><a class="dropdown-item" href="/Employer/History"><i class="fas fa-history"></i> Lịch sử</a></li>
+                        <li><a class="dropdown-item" href="/CustomerService/UserPackages"><i class="fas fa-box"></i> Dịch vụ của tôi</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="/Login/Logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
                     </ul>
@@ -210,10 +283,42 @@
                 </div>
             }
 
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
             @if (TempData["Error"] != null)
             {
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["Warning"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i> @TempData["Warning"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["Info"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i class="fas fa-info-circle me-2"></i> @TempData["Info"]
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
@@ -239,8 +344,20 @@
                 if (subMenu) {
                     link.addEventListener('click', function (e) {
                         e.preventDefault();
-                        item.classList.toggle('expanded');
+                        
+                        // Close other expanded menus
+                        menuItems.forEach(otherItem => {
+                            if (otherItem !== item && otherItem.classList.contains('expanded')) {
+                                otherItem.classList.remove('expanded');
+                                const otherSubMenu = otherItem.querySelector('.sub-menu');
+                                if (otherSubMenu) {
+                                    otherSubMenu.style.maxHeight = '0';
+                                }
+                            }
+                        });
 
+                        // Toggle current menu
+                        item.classList.toggle('expanded');
                         const isExpanded = item.classList.contains('expanded');
 
                         if (isExpanded) {
@@ -250,8 +367,8 @@
                         }
                     });
 
-                    // Auto expand if a child is active
-                    if (item.querySelector('.sub-menu .active')) {
+                    // Auto expand if a child is active or if parent is active
+                    if (item.querySelector('.sub-menu .active') || item.classList.contains('active')) {
                         item.classList.add('expanded');
                         subMenu.style.maxHeight = subMenu.scrollHeight + 'px';
                     }
@@ -265,6 +382,68 @@
                     document.querySelector('.employer-dashboard').classList.toggle('sidebar-collapsed');
                 });
             }
+
+            // Auto-dismiss alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    if (alert && alert.parentNode) {
+                        alert.classList.remove('show');
+                        setTimeout(() => {
+                            if (alert.parentNode) {
+                                alert.parentNode.removeChild(alert);
+                            }
+                        }, 150);
+                    }
+                }, 5000);
+            });
+
+            // Real-time balance update function
+            function updateBalance() {
+                const balanceElement = document.getElementById('balance-display');
+                if (!balanceElement) return;
+
+                // Add updating class for visual feedback
+                balanceElement.classList.add('updating');
+
+                fetch('/CustomerService/GetCurrentBalance')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            balanceElement.textContent = data.formattedBalance + ' CD';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating balance:', error);
+                    })
+                    .finally(() => {
+                        // Remove updating class
+                        balanceElement.classList.remove('updating');
+                    });
+            }
+
+            // Update balance every 10 seconds
+            setInterval(updateBalance, 10000);
+
+            // Update balance immediately after purchase (detect if coming from CustomerService)
+            if (window.location.pathname.includes('/CustomerService/') || 
+                document.referrer.includes('/CustomerService/Buy') ||
+                document.referrer.includes('/CustomerService/purchase')) {
+                setTimeout(updateBalance, 1000); // Update after 1 second
+            }
+
+            // Listen for custom balance update events
+            window.addEventListener('balanceUpdated', function() {
+                updateBalance();
+            });
+
+            // Update balance when page gains focus (user returns from payment)
+            window.addEventListener('focus', function () {
+                if (document.referrer.includes('/Credit/') || 
+                    document.referrer.includes('/CustomerService/')) {
+                    setTimeout(updateBalance, 500);
+                }
+            });
         });
 
         function updateViewMode(mode) {
@@ -273,13 +452,30 @@
             window.location.href = url.toString();
         }
 
-        // Refresh balance after payment
-        window.addEventListener('focus', function () {
-            // Reload page to get updated balance
-            if (document.referrer.includes('/Credit/')) {
-                location.reload();
-            }
-        });
+        // Global function to trigger balance update
+        function triggerBalanceUpdate() {
+            window.dispatchEvent(new CustomEvent('balanceUpdated'));
+        }
+
+        // Customer Service specific functionality
+        if (window.location.pathname.includes('/CustomerService/')) {
+            console.log('Customer Service page loaded');
+            
+            // Update balance when leaving CustomerService pages
+            window.addEventListener('beforeunload', function() {
+                // Trigger balance update for next page load
+                sessionStorage.setItem('shouldUpdateBalance', 'true');
+            });
+        }
+
+        // Check if we should update balance on page load
+        if (sessionStorage.getItem('shouldUpdateBalance') === 'true') {
+            sessionStorage.removeItem('shouldUpdateBalance');
+            setTimeout(() => {
+                const event = new CustomEvent('balanceUpdated');
+                window.dispatchEvent(event);
+            }, 500);
+        }
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

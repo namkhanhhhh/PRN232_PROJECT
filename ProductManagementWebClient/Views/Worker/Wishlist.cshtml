@@ -47,6 +47,9 @@
                 @foreach (var wishlistItem in Model)
                 {
                     <div class="wishlist-item border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition duration-300" data-job-id="@wishlistItem.JobPostId">
+                            <div class="h-48 overflow-hidden">
+                            <img src="@wishlistItem.JobPost.ImageMain" alt="@wishlistItem.JobPost.Title" class="w-full h-full object-cover">
+                            </div>
                         <div class="p-6">
                             <div class="flex justify-between items-start mb-3">
                                 <h3 class="font-semibold text-lg text-gray-900">

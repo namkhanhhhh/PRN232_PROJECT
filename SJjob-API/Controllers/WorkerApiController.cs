@@ -38,8 +38,8 @@ namespace Sjob_API.Controllers
         {
             try
             {
-                // Get featured categories
-                var featuredCategories = await _jobPostRepository.GetFeaturedCategoriesAsync(8);
+                // Get featured categories with children
+                var featuredCategories = await _jobPostRepository.GetCategoriesWithChildrenAsync();
 
                 // Get diamond posts
                 var diamondPosts = await _jobPostRepository.GetDiamondPostsAsync(6);
@@ -47,7 +47,7 @@ namespace Sjob_API.Controllers
                 // Get most viewed posts
                 var mostViewedPosts = await _jobPostRepository.GetMostViewedPostsAsync(6);
 
-                // Get all posts with filtering
+                // Get all posts with filtering for search
                 var allPosts = await _jobPostRepository.GetJobPostsAsync(
                     request.Page,
                     request.PageSize,
@@ -82,14 +82,7 @@ namespace Sjob_API.Controllers
                 // Convert to DTOs
                 var dashboardDto = new WorkerDashboardDto
                 {
-                    FeaturedCategories = featuredCategories.Select(c => new JobCategoryDto
-                    {
-                        Id = c.Id,
-                        Name = c.Name,
-                        Description = c.Description,
-                        ParentId = c.ParentId,
-                        JobCount = c.JobPostCategories?.Count ?? 0
-                    }).ToList(),
+                    FeaturedCategories = ConvertToCategoryWithChildrenDtos(featuredCategories),
                     DiamondPosts = ConvertToJobPostDtos(diamondPosts, wishlistJobIds, appliedJobIds),
                     MostViewedPosts = ConvertToJobPostDtos(mostViewedPosts, wishlistJobIds, appliedJobIds),
                     AllPosts = ConvertToJobPostDtos(allPosts, wishlistJobIds, appliedJobIds),
@@ -111,6 +104,48 @@ namespace Sjob_API.Controllers
                 {
                     Success = false,
                     Message = "Đã xảy ra lỗi khi lấy dữ liệu dashboard"
+                });
+            }
+        }
+
+        [HttpPost("all-jobs")]
+        public async Task<ActionResult<PaginatedResponseDto<JobPostDto>>> GetAllJobs([FromBody] AllJobsRequestDto request)
+        {
+            try
+            {
+                var jobs = await _jobPostRepository.GetAllJobsAsync(request.Page, request.PageSize);
+                var totalItems = await _jobPostRepository.GetAllJobsCountAsync();
+                var totalPages = (int)Math.Ceiling(totalItems / (double)request.PageSize);
+
+                // Get wishlist and application status if user is authenticated
+                List<int> wishlistJobIds = new List<int>();
+                List<int> appliedJobIds = new List<int>();
+
+                if (request.UserId.HasValue)
+                {
+                    wishlistJobIds = await _wishlistRepository.GetWishlistJobIdsByUserAsync(request.UserId.Value);
+                    var applications = await _applicationRepository.GetApplicationsByUserAsync(request.UserId.Value);
+                    appliedJobIds = applications.Select(a => a.JobPostId).ToList();
+                }
+
+                var jobDtos = ConvertToJobPostDtos(jobs, wishlistJobIds, appliedJobIds);
+
+                return Ok(new PaginatedResponseDto<JobPostDto>
+                {
+                    Success = true,
+                    Message = "Lấy danh sách tất cả công việc thành công",
+                    Items = jobDtos,
+                    TotalPages = totalPages,
+                    CurrentPage = request.Page,
+                    TotalItems = totalItems
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new PaginatedResponseDto<JobPostDto>
+                {
+                    Success = false,
+                    Message = "Đã xảy ra lỗi khi lấy danh sách công việc"
                 });
             }
         }
@@ -370,7 +405,8 @@ namespace Sjob_API.Controllers
                     SalaryMin = a.JobPost.SalaryMin,
                     SalaryMax = a.JobPost.SalaryMax,
                     EmployerName = a.JobPost.User.Username,
-                    EmployerAvatar = a.JobPost.User.Avatar
+                    EmployerAvatar = a.JobPost.User.Avatar,
+                    JobImageMain = a.JobPost.ImageMain
                 }).ToList();
 
                 return Ok(new ApiResponseDto<List<ApplicationDto>>
@@ -694,10 +730,6 @@ namespace Sjob_API.Controllers
             {
                 var userId = GetCurrentUserId();
 
-                // Log để debug
-                Console.WriteLine($"Updating profile for user ID: {userId}");
-                Console.WriteLine($"Request data: {System.Text.Json.JsonSerializer.Serialize(request)}");
-
                 var user = await _userRepository.GetUserByIdAsync(userId);
 
                 if (user == null)
@@ -738,7 +770,6 @@ namespace Sjob_API.Controllers
                     };
 
                     await _userRepository.CreateUserDetailAsync(userDetail);
-                    Console.WriteLine("Created new user detail");
                 }
                 else
                 {
@@ -757,10 +788,8 @@ namespace Sjob_API.Controllers
                     userDetail.Headline = request.Headline;
 
                     await _userRepository.UpdateUserDetailAsync(userDetail);
-                    Console.WriteLine("Updated existing user detail");
                 }
 
-                // Ensure changes are saved
                 await _userRepository.SaveChangesAsync();
 
                 return Ok(new ApiResponseDto
@@ -771,9 +800,6 @@ namespace Sjob_API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating profile: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-
                 return StatusCode(500, new ApiResponseDto
                 {
                     Success = false,
@@ -836,6 +862,27 @@ namespace Sjob_API.Controllers
             return userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
         }
 
+        private List<JobCategoryWithChildrenDto> ConvertToCategoryWithChildrenDtos(List<JobCategory> categories)
+        {
+            return categories.Select(c => new JobCategoryWithChildrenDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                ParentId = c.ParentId,
+                JobCount = c.JobPostCategories?.Count ?? 0,
+                Children = c.InverseParent?.Select(child => new JobCategoryWithChildrenDto
+                {
+                    Id = child.Id,
+                    Name = child.Name,
+                    Description = child.Description,
+                    ParentId = child.ParentId,
+                    JobCount = child.JobPostCategories?.Count ?? 0,
+                    Children = new List<JobCategoryWithChildrenDto>()
+                }).ToList() ?? new List<JobCategoryWithChildrenDto>()
+            }).ToList();
+        }
+
         private List<JobPostDto> ConvertToJobPostDtos(List<JobPost> jobPosts, List<int> wishlistJobIds, List<int> appliedJobIds)
         {
             return jobPosts.Select(jp => ConvertToJobPostDto(jp, wishlistJobIds.Contains(jp.Id), appliedJobIds.Contains(jp.Id))).ToList();
@@ -849,17 +896,24 @@ namespace Sjob_API.Controllers
                 Title = jobPost.Title,
                 Description = jobPost.Description,
                 Requirements = jobPost.Requirements,
+                Benefits = jobPost.Benefits,
                 Location = jobPost.Location,
                 JobType = jobPost.JobType,
+                ExperienceLevel = jobPost.ExperienceLevel,
                 SalaryMin = jobPost.SalaryMin,
                 SalaryMax = jobPost.SalaryMax,
+                Deadline = jobPost.Deadline,
+                ImageMain = jobPost.ImageMain,
+                Image2 = jobPost.Image2,
+                Image3 = jobPost.Image3,
+                Image4 = jobPost.Image4,
                 PostType = jobPost.PostType,
                 PriorityLevel = jobPost.PriorityLevel,
                 PushedToTopUntil = jobPost.PushedToTopUntil,
                 Status = jobPost.Status,
                 ViewCount = jobPost.ViewCount,
+                IsFeatured = jobPost.IsFeatured,
                 CreatedAt = jobPost.CreatedAt,
-                Deadline = jobPost.Deadline,
                 UserId = jobPost.UserId,
                 EmployerName = jobPost.User?.Username ?? "",
                 EmployerAvatar = jobPost.User?.Avatar,

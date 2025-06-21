@@ -1,0 +1,199 @@
+﻿@model BusinessObjects.DTOs.CreditTransaction.CreditTransactionDetailsDto
+@{
+    ViewData["Title"] = "Chi Tiết Giao Dịch";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-receipt me-2"></i>
+                    Chi Tiết Giao Dịch #@Model.Id
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>ID Giao Dịch:</strong></td>
+                                <td>@Model.Id</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Số Tiền:</strong></td>
+                                <td>
+                                    <span class="@(Model.Amount >= 0 ? "text-success" : "text-danger") h5">
+                                        @Model.Amount.ToString("N0") VNĐ
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Loại Giao Dịch:</strong></td>
+                                <td>
+                                    <span class="badge @(Model.TransactionType == "Topup" || Model.TransactionType == "NapTien" ? "badge-success" : "badge-warning") fs-6">
+                                        @Model.TransactionType
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Số Dư Sau:</strong></td>
+                                <td>@Model.BalanceAfter?.ToString("N0") VNĐ</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ngày Tạo:</strong></td>
+                                <td>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Reference ID:</strong></td>
+                                <td>@(Model.ReferenceId?.ToString() ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Reference Type:</strong></td>
+                                <td>@(Model.ReferenceType ?? "N/A")</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Mô Tả:</strong></td>
+                                <td>@(Model.Description ?? "N/A")</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Recent Transactions -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Giao Dịch Gần Đây Của Người Dùng
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Số Tiền</th>
+                                <th>Loại</th>
+                                <th>Số Dư Sau</th>
+                                <th>Ngày</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transaction in Model.UserTransactions)
+                            {
+                                <tr class="@(transaction.Id == Model.Id ? "table-primary" : "")">
+                                    <td>@transaction.Id</td>
+                                    <td>
+                                        <span class="@(transaction.Amount >= 0 ? "text-success" : "text-danger")">
+                                            @transaction.Amount.ToString("N0") VNĐ
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(transaction.TransactionType == "Topup" || transaction.TransactionType == "NapTien" ? "badge-success" : "badge-warning")">
+                                            @transaction.TransactionType
+                                        </span>
+                                    </td>
+                                    <td>@transaction.BalanceAfter?.ToString("N0") VNĐ</td>
+                                    <td>@transaction.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- User Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person me-2"></i>
+                    Thông Tin Người Dùng
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>ID:</strong></td>
+                        <td>@Model.UserId</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Username:</strong></td>
+                        <td>@Model.Username</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>@Model.Email</td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(Model.FirstName) || !string.IsNullOrEmpty(Model.LastName))
+                    {
+                        <tr>
+                            <td><strong>Họ Tên:</strong></td>
+                            <td>@Model.FirstName @Model.LastName</td>
+                        </tr>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                    {
+                        <tr>
+                            <td><strong>Điện Thoại:</strong></td>
+                            <td>@Model.PhoneNumber</td>
+                        </tr>
+                    }
+                    <tr>
+                        <td><strong>Số Dư Hiện Tại:</strong></td>
+                        <td>
+                            <span class="text-primary h6">
+                                @Model.CurrentBalance.ToString("N0") VNĐ
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="d-grid gap-2 mt-3">
+                    <a href="@Url.Action("Index", "Account")" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-person-lines-fill me-1"></i>
+                        Xem Hồ Sơ Đầy Đủ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Thao Tác Nhanh</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Index")" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Quay Lại Danh Sách
+                    </a>
+                    <a href="@Url.Action("Index", new { searchEmail = Model.Email })" class="btn btn-info btn-sm">
+                        <i class="bi bi-search me-1"></i>
+                        Xem Tất Cả Giao Dịch
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}

@@ -1,48 +1,73 @@
-﻿using SJOB_EXE201.Services;
+﻿using BusinessObjects.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
-namespace SJOB_EXE201.Middleware
+namespace SJjob_API.Middleware
 {
-    // Middleware/ExpiredSubscriptionMiddleware.cs
     public class ExpiredSubscriptionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<ExpiredSubscriptionMiddleware> _logger;
 
-        public ExpiredSubscriptionMiddleware(RequestDelegate next, IServiceProvider serviceProvider)
+        public ExpiredSubscriptionMiddleware(RequestDelegate next, ILogger<ExpiredSubscriptionMiddleware> logger)
         {
             _next = next;
-            _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, SjobPContext dbContext)
         {
-            // Chỉ kiểm tra nếu người dùng đã đăng nhập
-            if (context.User.Identity.IsAuthenticated)
+            // Only check for authenticated users
+            if (context.User.Identity?.IsAuthenticated == true)
             {
-                // Lấy ID người dùng từ claims
-                var userIdClaim = context.User.FindFirst("UserId");
-                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                var userIdClaim = context.User.FindFirst("UserId")?.Value;
+                if (int.TryParse(userIdClaim, out int userId))
                 {
-                    // Kiểm tra xem đã kiểm tra gần đây chưa (để tránh kiểm tra quá nhiều)
-                    var lastCheck = context.Session.GetString("LastExpiredCheck");
-                    var now = DateTime.Now;
-
-                    if (string.IsNullOrEmpty(lastCheck) || DateTime.Parse(lastCheck).AddHours(1) < now)
-                    {
-                        using (var scope = _serviceProvider.CreateScope())
-                        {
-                            var service = scope.ServiceProvider.GetRequiredService<ExpiredSubscriptionService>();
-                            await service.ProcessExpiredSubscriptionsForUser(userId);
-                        }
-
-                        // Lưu thời gian kiểm tra
-                        context.Session.SetString("LastExpiredCheck", now.ToString());
-                    }
+                    await CheckAndUpdateExpiredItems(dbContext, userId);
                 }
             }
 
             await _next(context);
         }
-    }
 
+        private async Task CheckAndUpdateExpiredItems(SjobPContext context, int userId)
+        {
+            try
+            {
+                var now = DateTime.Now;
+
+                // Check expired subscriptions
+                var expiredSubscriptions = await context.Subscriptions
+                    .Where(s => s.UserId == userId && s.Status == "active" && s.EndDate < now)
+                    .ToListAsync();
+
+                foreach (var subscription in expiredSubscriptions)
+                {
+                    subscription.Status = "expired";
+                    _logger.LogInformation($"Subscription {subscription.Id} for user {userId} has expired");
+                }
+
+                // Check expired service orders
+                var expiredServiceOrders = await context.ServiceOrders
+                    .Where(so => so.UserId == userId && so.Status == "active" &&
+                                so.EndDate.HasValue && so.EndDate < now)
+                    .ToListAsync();
+
+                foreach (var serviceOrder in expiredServiceOrders)
+                {
+                    serviceOrder.Status = "expired";
+                    _logger.LogInformation($"Service order {serviceOrder.Id} for user {userId} has expired");
+                }
+
+                if (expiredSubscriptions.Any() || expiredServiceOrders.Any())
+                {
+                    await context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error checking expired items for user {userId}");
+            }
+        }
+    }
 }

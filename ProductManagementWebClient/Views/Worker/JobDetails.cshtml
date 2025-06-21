@@ -21,6 +21,58 @@
     </div>
 </div>
 
+<!-- Job Images Gallery -->
+@{
+    var images = new List<string>();
+    if (!string.IsNullOrEmpty(Model.ImageMain)) images.Add(Model.ImageMain);
+    if (!string.IsNullOrEmpty(Model.Image2)) images.Add(Model.Image2);
+    if (!string.IsNullOrEmpty(Model.Image3)) images.Add(Model.Image3);
+    if (!string.IsNullOrEmpty(Model.Image4)) images.Add(Model.Image4);
+}
+
+@if (images.Any())
+{
+    <div class="container mx-auto px-4 py-4">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Hình ảnh công việc</h2>
+
+            @if (images.Count == 1)
+            {
+                <!-- Single image -->
+                <div class="w-full">
+                    <img src="@images[0]" alt="@Model.Title" class="w-full h-64 object-cover rounded-lg cursor-pointer" onclick="openImageModal('@images[0]')">
+                </div>
+            }
+            else
+            {
+                <!-- Multiple images grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    @for (int i = 0; i < images.Count; i++)
+                    {
+                        <div class="relative">
+                            <img src="@images[i]" alt="@Model.Title - Ảnh @(i + 1)"
+                                 class="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                 onclick="openImageModal('@images[i]')">
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+        <div class="relative max-w-4xl max-h-full">
+            <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <img id="modalImage" src="/placeholder.svg" alt="" class="max-w-full max-h-full object-contain rounded-lg">
+        </div>
+    </div>
+}
+
 <div class="container mx-auto px-4 py-8">
     <div class="flex flex-col lg:flex-row gap-8">
         <!-- Main Content -->
@@ -432,6 +484,35 @@
                 setTimeout(() => {
                     document.body.removeChild(successDiv);
                 }, 3000);
+            }
+        });
+
+        // Image modal functionality
+        function openImageModal(imageSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            modalImage.src = imageSrc;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside the image
+        document.getElementById('imageModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeImageModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeImageModal();
             }
         });
     </script>
