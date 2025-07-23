@@ -375,6 +375,120 @@ namespace Sjob_API.Controllers
             }
         }
 
+        [HttpPost("{id}/deactivate")]
+        [Authorize(Roles = "Employer,Admin")]
+        public async Task<ActionResult<ApiResponseDto<bool>>> DeactivateJobPost(int id)
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                var currentUserRole = GetCurrentUserRole();
+
+                // Check if user owns this job post (unless admin)
+                if (currentUserRole != "Admin")
+                {
+                    var jobPost = await _jobPostManagementRepository.GetJobPostByIdAsync(id);
+                    if (jobPost == null || jobPost.UserId != currentUserId)
+                    {
+                        return Forbid();
+                    }
+                }
+
+                var result = await _jobPostManagementRepository.DeleteJobPostAsync(id); // This sets status to inactive
+
+                return Ok(new ApiResponseDto<bool>
+                {
+                    Success = result,
+                    Data = result,
+                    Message = result ? "Job post deactivated successfully" : "Failed to deactivate job post"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDto<bool>
+                {
+                    Success = false,
+                    Message = $"Error deactivating job post: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("{id}/activate")]
+        [Authorize(Roles = "Employer,Admin")]
+        public async Task<ActionResult<ApiResponseDto<bool>>> ActivateJobPost(int id)
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                var currentUserRole = GetCurrentUserRole();
+
+                // Check if user owns this job post (unless admin)
+                if (currentUserRole != "Admin")
+                {
+                    var jobPost = await _jobPostManagementRepository.GetJobPostByIdAsync(id);
+                    if (jobPost == null || jobPost.UserId != currentUserId)
+                    {
+                        return Forbid();
+                    }
+                }
+
+                var result = await _jobPostManagementRepository.ActivateJobPostAsync(id);
+
+                return Ok(new ApiResponseDto<bool>
+                {
+                    Success = result,
+                    Data = result,
+                    Message = result ? "Job post activated successfully" : "Failed to activate job post"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDto<bool>
+                {
+                    Success = false,
+                    Message = $"Error activating job post: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost("{id}/toggle-status")]
+        [Authorize(Roles = "Employer,Admin")]
+        public async Task<ActionResult<ApiResponseDto<bool>>> ToggleJobPostStatus(int id)
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                var currentUserRole = GetCurrentUserRole();
+
+                // Check if user owns this job post (unless admin)
+                if (currentUserRole != "Admin")
+                {
+                    var jobPost = await _jobPostManagementRepository.GetJobPostByIdAsync(id);
+                    if (jobPost == null || jobPost.UserId != currentUserId)
+                    {
+                        return Forbid();
+                    }
+                }
+
+                var result = await _jobPostManagementRepository.ToggleJobPostStatusAsync(id);
+
+                return Ok(new ApiResponseDto<bool>
+                {
+                    Success = result,
+                    Data = result,
+                    Message = result ? "Job post status updated successfully" : "Failed to update job post status"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponseDto<bool>
+                {
+                    Success = false,
+                    Message = $"Error updating job post status: {ex.Message}"
+                });
+            }
+        }
+
         [HttpPost("add-credit-transaction")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponseDto<bool>>> AddCreditTransaction([FromBody] AddCreditTransactionDto dto)

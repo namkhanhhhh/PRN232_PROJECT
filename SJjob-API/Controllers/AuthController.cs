@@ -171,19 +171,23 @@ namespace Sjob_API.Controllers
 
                 await _userRepository.CreateUserDetailAsync(newUserDetail);
 
-                // Create user post credits (5 silver posts for new users)
-                var postCredit = new UserPostCredit
+                // Create user post credits (5 silver posts for new users) - only if not exists
+                var existingPostCredit = await _userRepository.GetUserPostCreditByUserIdAsync(createdUser.Id);
+                if (existingPostCredit == null)
                 {
-                    UserId = createdUser.Id,
-                    SilverPostsAvailable = 5,
-                    GoldPostsAvailable = 0,
-                    DiamondPostsAvailable = 0,
-                    PushToTopAvailable = 0,
-                    AuthenLogoAvailable = 0,
-                    LastUpdated = DateTime.Now
-                };
+                    var postCredit = new UserPostCredit
+                    {
+                        UserId = createdUser.Id,
+                        SilverPostsAvailable = 5,
+                        GoldPostsAvailable = 0,
+                        DiamondPostsAvailable = 0,
+                        PushToTopAvailable = 0,
+                        AuthenLogoAvailable = 0,
+                        LastUpdated = DateTime.Now
+                    };
 
-                await _userRepository.CreateUserPostCreditAsync(postCredit);
+                    await _userRepository.CreateUserPostCreditAsync(postCredit);
+                }
 
                 // Get user with role for response
                 var userWithRole = await _userRepository.GetUserByIdAsync(createdUser.Id);
@@ -277,19 +281,23 @@ namespace Sjob_API.Controllers
 
                     await _userRepository.CreateUserDetailAsync(userDetail);
 
-                    // Add 5 silver posts for new user
-                    var postCredit = new UserPostCredit
+                    // Add 5 silver posts for new user - only if not exists
+                    var existingPostCredit = await _userRepository.GetUserPostCreditByUserIdAsync(user.Id);
+                    if (existingPostCredit == null)
                     {
-                        UserId = user.Id,
-                        SilverPostsAvailable = 5,
-                        GoldPostsAvailable = 0,
-                        DiamondPostsAvailable = 0,
-                        PushToTopAvailable = 0,
-                        AuthenLogoAvailable = 0,
-                        LastUpdated = DateTime.Now
-                    };
+                        var postCredit = new UserPostCredit
+                        {
+                            UserId = user.Id,
+                            SilverPostsAvailable = 5,
+                            GoldPostsAvailable = 0,
+                            DiamondPostsAvailable = 0,
+                            PushToTopAvailable = 0,
+                            AuthenLogoAvailable = 0,
+                            LastUpdated = DateTime.Now
+                        };
 
-                    await _userRepository.CreateUserPostCreditAsync(postCredit);
+                        await _userRepository.CreateUserPostCreditAsync(postCredit);
+                    }
                 }
 
                 // Get user with role

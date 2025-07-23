@@ -29,6 +29,18 @@ namespace Repository.Implementations
             return await _jobPostManagementDAO.CreateJobPostAsync(jobPost);
         }
 
+        public async Task<bool> ActivateJobPostAsync(int id)
+        {
+            return await _jobPostManagementDAO.ActivateJobPostAsync(id);
+
+        }
+
+        public async Task<bool> ToggleJobPostStatusAsync(int id)
+        {
+            return await _jobPostManagementDAO.ToggleJobPostStatusAsync(id);
+
+        }
+
         public async Task<bool> UpdateJobPostAsync(JobPost jobPost)
         {
             return await _jobPostManagementDAO.UpdateJobPostAsync(jobPost);

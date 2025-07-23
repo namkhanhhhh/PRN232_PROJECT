@@ -15,5 +15,7 @@ namespace Repository.Interfaces
         Task<List<JobCategory>> GetJobCategoriesAsync();
         Task<UserPostCredit?> GetUserPostCreditsAsync(int userId);
         Task<bool> DeductPostCreditAsync(int userId, string postType);
+        Task<bool> ActivateJobPostAsync(int id);
+        Task<bool> ToggleJobPostStatusAsync(int id);
     }
 }

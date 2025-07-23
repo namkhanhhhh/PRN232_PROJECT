@@ -164,6 +164,45 @@ namespace DataAccess.DAO
             }
         }
 
+
+        public async Task<bool> ActivateJobPostAsync(int id)
+        {
+            try
+            {
+                var jobPost = await _context.JobPosts.FindAsync(id);
+                if (jobPost != null)
+                {
+                    jobPost.Status = "active";
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ToggleJobPostStatusAsync(int id)
+        {
+            try
+            {
+                var jobPost = await _context.JobPosts.FindAsync(id);
+                if (jobPost != null)
+                {
+                    jobPost.Status = jobPost.Status == "active" ? "inactive" : "active";
+                    await _context.SaveChangesAsync();
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public async Task<bool> AddCreditTransactionAsync(int userId, decimal amount, string transactionType, string description)
         {
             try
