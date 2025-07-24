@@ -14,6 +14,6 @@ namespace BusinessObjects.DTOs.Worker
         public decimal? MinSalary { get; set; }
         public decimal? MaxSalary { get; set; }
         public int? CategoryId { get; set; }
-        public int? UserId { get; set; } // For checking wishlist and application status
+        public int? UserId { get; set; }
     }
 }

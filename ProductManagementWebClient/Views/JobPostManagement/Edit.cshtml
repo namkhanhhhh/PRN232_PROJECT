@@ -170,6 +170,13 @@
                 <i class="fas fa-exclamation-triangle"></i> @ViewBag.ErrorMessage
             </div>
         }
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="error-summary">
+                <h6><i class="fas fa-exclamation-circle"></i> Vui lòng sửa các lỗi sau:</h6>
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+        }
 
         <div class="form-section">
             <div class="form-section-title">
@@ -182,15 +189,50 @@
                         <i class="fas fa-heading"></i> Tiêu đề
                     </label>
                     <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+            </div>
+
+
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-map-marker-alt"></i> Địa điểm
+                    </label>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <select id="provinceSelect" class="form-control" required>
+                                <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="districtSelect" class="form-control" required disabled>
+                                <option value="">-- Chọn Quận/Huyện --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="wardSelect" class="form-control" required disabled>
+                                <option value="">-- Chọn Phường/Xã --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selectedProvinceName" name="selectedProvinceName" />
+                    <input type="hidden" id="selectedDistrictName" name="selectedDistrictName" />
+                    <input type="hidden" id="selectedWardName" name="selectedWardName" />
+                    <span asp-validation-for="Location" class="text-danger"></span>
+                    <small class="form-text text-muted">Chọn địa điểm làm việc</small>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label asp-for="Location" class="form-label">
-                        <i class="fas fa-map-marker-alt"></i> Địa điểm
+                    <label asp-for="SpecificAddress" class="form-label">
+                        <i class="fas fa-map-pin"></i> Địa chỉ cụ thể (Số nhà, tên đường)
                     </label>
-                    <input asp-for="Location" class="form-control" />
+                    <input asp-for="SpecificAddress" class="form-control" placeholder="Ví dụ: 48 Bùi Thị Xuân" maxlength="255" />
+                    <span asp-validation-for="SpecificAddress" class="text-danger"></span>
+                    <small class="form-text text-muted">Địa chỉ chi tiết (tùy chọn)</small>
                 </div>
             </div>
 
@@ -220,6 +262,7 @@
                         <option value="Thực tập">Thực tập</option>
                         <option value="Freelance">Freelance</option>
                     </select>
+                    <span asp-validation-for="JobType" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
@@ -233,6 +276,7 @@
                         <option value="Ít nhất 6 tháng kinh nghiệm">Ít nhất 6 tháng kinh nghiệm</option>
                         <option value="Trên 1 năm kinh nghiệm">Trên 1 năm kinh nghiệm</option>
                     </select>
+                    <span asp-validation-for="ExperienceLevel" class="text-danger"></span>
                 </div>
             </div>
 
@@ -242,6 +286,7 @@
                         <i class="fas fa-money-bill-wave"></i> Lương tối thiểu (VNĐ)
                     </label>
                     <input asp-for="SalaryMin" class="form-control" type="number" min="0" />
+                    <span asp-validation-for="SalaryMin" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
@@ -249,6 +294,7 @@
                         <i class="fas fa-money-bill-wave"></i> Lương tối đa (VNĐ)
                     </label>
                     <input asp-for="SalaryMax" class="form-control" type="number" min="0" />
+                    <span asp-validation-for="SalaryMax" class="text-danger"></span>
                 </div>
             </div>
 
@@ -258,6 +304,7 @@
                         <i class="fas fa-calendar-alt"></i> Hạn nộp hồ sơ
                     </label>
                     <input asp-for="Deadline" class="form-control" type="date" />
+                    <span asp-validation-for="Deadline" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
@@ -390,6 +437,7 @@
                         <i class="fas fa-align-left"></i> Mô tả công việc
                     </label>
                     <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
             </div>
 
@@ -399,6 +447,7 @@
                         <i class="fas fa-list-check"></i> Yêu cầu ứng viên
                     </label>
                     <textarea asp-for="Requirements" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Requirements" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
@@ -406,6 +455,7 @@
                         <i class="fas fa-gift"></i> Phúc lợi
                     </label>
                     <textarea asp-for="Benefits" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="Benefits" class="text-danger"></span>
                 </div>
             </div>
         </div>
@@ -428,6 +478,8 @@
     <script>
         let selectedCategories = [];
         const currentCategoryIds = '@ViewBag.CurrentCategoryIds';
+        const currentLocation = '@ViewBag.CurrentLocation'; // Get original full location string
+        const currentSpecificAddress = '@ViewBag.CurrentSpecificAddress'; // Get parsed specific address
 
         document.addEventListener('DOMContentLoaded', () => {
             // Parse current category IDs
@@ -438,12 +490,194 @@
             // Load job categories
             loadJobCategories();
 
+            // Location dropdowns
+            const provinceSelect = document.getElementById('provinceSelect');
+            const districtSelect = document.getElementById('districtSelect');
+            const wardSelect = document.getElementById('wardSelect');
+            const selectedProvinceNameInput = document.getElementById('selectedProvinceName');
+            const selectedDistrictNameInput = document.getElementById('selectedDistrictName');
+            const selectedWardNameInput = document.getElementById('selectedWardName');
+
+            // Pre-fill specific address input
+            const specificAddressInput = document.getElementById('SpecificAddress');
+            if (specificAddressInput && currentSpecificAddress) {
+                specificAddressInput.value = currentSpecificAddress;
+            }
+
+            // Load provinces on page load and pre-select if location exists
+            loadProvinces(currentLocation); // Pass the original full location string for dropdown pre-selection
+
+            provinceSelect.addEventListener('change', async () => { // Made async
+                const selectedProvinceCode = provinceSelect.value;
+                selectedProvinceNameInput.value = provinceSelect.options[provinceSelect.selectedIndex].text;
+                if (selectedProvinceCode) {
+                    await loadDistricts(selectedProvinceCode); // Await the call
+                    districtSelect.disabled = false;
+                    wardSelect.disabled = true;
+                    wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+                    selectedDistrictNameInput.value = '';
+                    selectedWardNameInput.value = '';
+                } else {
+                    districtSelect.disabled = true;
+                    wardSelect.disabled = true;
+                    districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+                    wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+                    selectedProvinceNameInput.value = '';
+                    selectedDistrictNameInput.value = '';
+                    selectedWardNameInput.value = '';
+                }
+            });
+
+            districtSelect.addEventListener('change', async () => { // Made async
+                const selectedDistrictCode = districtSelect.value;
+                selectedDistrictNameInput.value = districtSelect.options[districtSelect.selectedIndex].text;
+                if (selectedDistrictCode) {
+                    await loadWards(selectedDistrictCode); // Await the call
+                    wardSelect.disabled = false;
+                    selectedWardNameInput.value = '';
+                } else {
+                    wardSelect.disabled = true;
+                    wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+                    selectedDistrictNameInput.value = '';
+                    selectedWardNameInput.value = '';
+                }
+            });
+
+            wardSelect.addEventListener('change', () => {
+                selectedWardNameInput.value = wardSelect.options[wardSelect.selectedIndex].text;
+            });
+
             // Form submission handler
             document.querySelector('form').addEventListener('submit', function (e) {
                 // Update hidden field with selected categories
                 document.getElementById('selectedCategoryIds').value = selectedCategories.join(',');
             });
         });
+
+        async function loadProvinces(currentLocation = '') {
+            try {
+                const response = await fetch('https://localhost:7009/api/LocationApi/provinces');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.success) {
+                    const provinces = result.data;
+                    const provinceSelect = document.getElementById('provinceSelect');
+                    provinceSelect.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>'; // Clear previous options
+                    provinces.forEach(province => {
+                        const option = document.createElement('option');
+                        option.value = province.code;
+                        option.textContent = province.name;
+                        provinceSelect.appendChild(option);
+                    });
+
+                    // Attempt to pre-select province if currentLocation is available
+                    if (currentLocation) {
+                        const parts = currentLocation.split(', ').map(p => p.trim());
+                        // The location string is typically "Specific Address, Ward, District, Province"
+                        // We need to find the province name which is the last part
+                        const provinceName = parts[parts.length - 1];
+                        const preSelectedProvince = provinces.find(p => p.name === provinceName);
+                        if (preSelectedProvince) {
+                            provinceSelect.value = preSelectedProvince.code;
+                            document.getElementById('selectedProvinceName').value = preSelectedProvince.name;
+                            // Await the loading of districts before proceeding
+                            await loadDistricts(preSelectedProvince.code, currentLocation);
+                            document.getElementById('districtSelect').disabled = false;
+                        }
+                    }
+                } else {
+                    console.error('Failed to load provinces:', result.message);
+                }
+            } catch (error) {
+                console.error('Error fetching provinces:', error);
+                alert('Không thể tải danh sách Tỉnh/Thành phố. Vui lòng thử lại sau.');
+            }
+        }
+
+        async function loadDistricts(provinceCode, currentLocation = '') {
+            try {
+                const response = await fetch(`https://localhost:7009/api/LocationApi/districts/${provinceCode}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+                const districtSelect = document.getElementById('districtSelect');
+                districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>'; // Clear previous options
+                if (result.success) {
+                    const districts = result.data;
+                    districts.forEach(district => {
+                        const option = document.createElement('option');
+                        option.value = district.code;
+                        option.textContent = district.name;
+                        districtSelect.appendChild(option);
+                    });
+
+                    // Attempt to pre-select district if currentLocation is available
+                    if (currentLocation) {
+                        const parts = currentLocation.split(', ').map(p => p.trim());
+                        // District name is the second to last part if Ward, District, Province are present
+                        if (parts.length >= 2) {
+                            const districtName = parts[parts.length - 2];
+                            const preSelectedDistrict = districts.find(d => d.name === districtName);
+                            if (preSelectedDistrict) {
+                                districtSelect.value = preSelectedDistrict.code;
+                                document.getElementById('selectedDistrictName').value = preSelectedDistrict.name;
+                                // Await the loading of wards before proceeding
+                                await loadWards(preSelectedDistrict.code, currentLocation);
+                                document.getElementById('wardSelect').disabled = false;
+                            }
+                        }
+                    }
+                } else {
+                    console.error('Failed to load districts:', result.message);
+                }
+            } catch (error) {
+                console.error('Error fetching districts:', error);
+                alert('Không thể tải danh sách Quận/Huyện. Vui lòng thử lại sau.');
+            }
+        }
+
+        async function loadWards(districtCode, currentLocation = '') {
+            try {
+                const response = await fetch(`https://localhost:7009/api/LocationApi/wards/${districtCode}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+                const wardSelect = document.getElementById('wardSelect');
+                wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>'; // Clear previous options
+                if (result.success) {
+                    const wards = result.data;
+                    wards.forEach(ward => {
+                        const option = document.createElement('option');
+                        option.value = ward.code;
+                        option.textContent = ward.name;
+                        wardSelect.appendChild(option);
+                    });
+
+                    // Attempt to pre-select ward if currentLocation is available
+                    if (currentLocation) {
+                        const parts = currentLocation.split(', ').map(p => p.trim());
+                        // Ward name is the third to last part if Ward, District, Province are present
+                        if (parts.length >= 3) {
+                            const wardName = parts[parts.length - 3];
+                            const preSelectedWard = wards.find(w => w.name === wardName);
+                            if (preSelectedWard) {
+                                wardSelect.value = preSelectedWard.code;
+                                document.getElementById('selectedWardName').value = preSelectedWard.name;
+                            }
+                        }
+                    }
+                } else {
+                    console.error('Failed to load wards:', result.message);
+                }
+            } catch (error) {
+                console.error('Error fetching wards:', error);
+                alert('Không thể tải danh sách Phường/Xã. Vui lòng thử lại sau.');
+            }
+        }
 
         function loadJobCategories() {
             fetch('/JobPostManagement/GetJobCategories')
@@ -474,7 +708,7 @@
                 parentCheckbox.className = 'category-checkbox';
                 parentCheckbox.id = `category-${category.id}`;
                 parentCheckbox.value = category.id;
-                parentCheckbox.checked = selectedCategories.includes(category.id);
+                parentCheckbox.checked = selectedCategories.includes(category.id); // Pre-check
                 parentCheckbox.addEventListener('change', function () {
                     handleCategorySelection(this);
                 });
@@ -501,7 +735,7 @@
                         childCheckbox.className = 'category-checkbox';
                         childCheckbox.id = `category-${child.id}`;
                         childCheckbox.value = child.id;
-                        childCheckbox.checked = selectedCategories.includes(child.id);
+                        childCheckbox.checked = selectedCategories.includes(child.id); // Pre-check
                         childCheckbox.addEventListener('change', function () {
                             handleCategorySelection(this);
                         });
@@ -531,6 +765,71 @@
                 }
             } else {
                 selectedCategories = selectedCategories.filter(id => id !== categoryId);
+            }
+        }
+
+        function validateImageFile(input, errorDiv) {
+            const file = input.files[0];
+
+            // Clear previous errors
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+            input.classList.remove('is-invalid');
+
+            if (file) {
+                let hasError = false;
+                let errorMessage = '';
+
+                // Check file size (5MB = 5 * 1024 * 1024 bytes)
+                if (file.size > 5 * 1024 * 1024) {
+                    hasError = true;
+                    errorMessage = 'Kích thước file không được vượt quá 5MB';
+                }
+
+                // Check file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!hasError && !allowedTypes.includes(file.type)) {
+                    hasError = true;
+                    errorMessage = 'Chỉ chấp nhận file ảnh: JPG, PNG, hoặc GIF';
+                }
+
+                if (hasError) {
+                    errorDiv.textContent = errorMessage;
+                    errorDiv.style.display = 'block';
+                    input.classList.add('is-invalid');
+                    input.value = '';
+                    return;
+                }
+            }
+        }
+
+        function updatePostTypeDescriptions(silverCredits, goldCredits, diamondCredits) {
+            const silverOption = document.querySelector('.post-type-option.silver');
+            const goldOption = document.querySelector('.post-type-option.gold');
+            const diamondOption = document.querySelector('.post-type-option.diamond');
+
+            if (silverCredits <= 0) {
+                silverOption.classList.add('disabled');
+                silverOption.querySelector('.post-type-desc').textContent = 'Hết lượt';
+                document.getElementById('silver').disabled = true;
+            } else {
+                silverOption.querySelector('.post-type-desc').textContent = `Còn ${silverCredits} lượt`;
+            }
+
+            if (goldCredits <= 0) {
+                goldOption.classList.add('disabled');
+                goldOption.querySelector('.post-type-desc').textContent = 'Hết lượt';
+                document.getElementById('gold').disabled = true;
+            } else {
+                goldOption.querySelector('.post-type-desc').textContent = `Còn ${goldCredits} lượt`;
+            }
+
+            if (diamondCredits <= 0) {
+                diamondOption.classList.add('disabled');
+                diamondOption.querySelector('.post-type-desc').textContent = 'Hết lượt';
+                document.getElementById('diamond').disabled = true;
+            } else {
+                diamondOption.querySelector('.post-type-desc').textContent = `Còn ${diamondCredits} lượt`;
             }
         }
     </script>

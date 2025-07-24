@@ -177,7 +177,6 @@ namespace ProductManagementWebClient.Controllers
                     ViewBag.DiamondCredits = 0;
                 }
                 await LoadUserBalanceForAllActions();
-                await LoadUserBalanceForAllActions();
 
                 return View(new JobPostCreateDto());
             }
@@ -189,7 +188,7 @@ namespace ProductManagementWebClient.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(JobPostCreateDto model, IFormFile? ImageMainFile, IFormFile? Image2File, IFormFile? Image3File, IFormFile? Image4File, string? selectedCategoryIds)
+        public async Task<IActionResult> Create(JobPostCreateDto model, IFormFile? ImageMainFile, IFormFile? Image2File, IFormFile? Image3File, IFormFile? Image4File, string? selectedCategoryIds, string? specificAddress, string? selectedProvinceName, string? selectedDistrictName, string? selectedWardName)
         {
             try
             {
@@ -217,13 +216,33 @@ namespace ProductManagementWebClient.Controllers
                     }
                 }
 
+                // Construct Location string from specific address, selected province, district, ward
+                var locationParts = new List<string>();
+                if (!string.IsNullOrEmpty(specificAddress))
+                {
+                    locationParts.Add(specificAddress);
+                }
+                if (!string.IsNullOrEmpty(selectedWardName) && selectedWardName != "-- Chọn Phường/Xã --")
+                {
+                    locationParts.Add(selectedWardName);
+                }
+                if (!string.IsNullOrEmpty(selectedDistrictName) && selectedDistrictName != "-- Chọn Quận/Huyện --")
+                {
+                    locationParts.Add(selectedDistrictName);
+                }
+                if (!string.IsNullOrEmpty(selectedProvinceName) && selectedProvinceName != "-- Chọn Tỉnh/Thành phố --")
+                {
+                    locationParts.Add(selectedProvinceName);
+                }
+                model.Location = string.Join(", ", locationParts);
+
                 // Handle image uploads
                 var imageFiles = new[] {
-                    new { File = ImageMainFile, PropertyName = "ImageMain" },
-                    new { File = Image2File, PropertyName = "Image2" },
-                    new { File = Image3File, PropertyName = "Image3" },
-                    new { File = Image4File, PropertyName = "Image4" }
-                };
+                  new { File = ImageMainFile, PropertyName = "ImageMain" },
+                  new { File = Image2File, PropertyName = "Image2" },
+                  new { File = Image3File, PropertyName = "Image3" },
+                  new { File = Image4File, PropertyName = "Image4" }
+              };
 
                 foreach (var imageFile in imageFiles)
                 {
@@ -368,6 +387,8 @@ namespace ProductManagementWebClient.Controllers
                 if (creditsResponse2?.Success == true && creditsResponse2.Data != null)
                 {
                     ViewBag.SilverCredits = creditsResponse2.Data.SilverPostsAvailable;
+                    ViewBag.GoldCredits = creditsResponse2.Data.GoldPostsAvailable;
+                    ViewBag.DiamondCredits = creditsResponse2.Data.DiamondPostsAvailable;
                 }
                 else
                 {
@@ -417,6 +438,30 @@ namespace ProductManagementWebClient.Controllers
 
                 if (response?.Success == true && response.Data != null)
                 {
+                    // Parse the full location string to separate specific address and geographic parts
+                    string fullLocation = response.Data.Location;
+                    string parsedSpecificAddress = "";
+                    string parsedLocationForDropdowns = "";
+
+                    var parts = fullLocation.Split(new[] { ", " }, StringSplitOptions.None).ToList();
+
+                    // Heuristic: Assume the last 3 parts are Ward, District, Province if they exist.
+                    // Everything before that is the specific address.
+                    if (parts.Count >= 3)
+                    {
+                        parsedLocationForDropdowns = string.Join(", ", parts.Skip(parts.Count - 3));
+                        parsedSpecificAddress = string.Join(", ", parts.Take(parts.Count - 3));
+                    }
+                    else if (parts.Count > 0)
+                    {
+                        // If less than 3 parts, it's either an incomplete location or just a specific address.
+                        // For simplicity, if it's not a full "Ward, District, Province" structure,
+                        // assume the entire string is the specific address.
+                        parsedSpecificAddress = fullLocation;
+                        parsedLocationForDropdowns = ""; // No geographic parts to pre-select
+                    }
+
+
                     var updateDto = new JobPostUpdateDto
                     {
                         Id = response.Data.Id,
@@ -424,7 +469,8 @@ namespace ProductManagementWebClient.Controllers
                         Description = response.Data.Description,
                         Requirements = response.Data.Requirements,
                         Benefits = response.Data.Benefits,
-                        Location = response.Data.Location,
+                        Location = parsedLocationForDropdowns, // This will be used by JS to pre-select dropdowns
+                        SpecificAddress = parsedSpecificAddress, // New property
                         SalaryMin = response.Data.SalaryMin,
                         SalaryMax = response.Data.SalaryMax,
                         JobType = response.Data.JobType,
@@ -451,6 +497,10 @@ namespace ProductManagementWebClient.Controllers
                         ViewBag.CurrentCategoryIds = "";
                     }
 
+                    // Pass current location parts to the view for pre-selection
+                    ViewBag.CurrentLocation = response.Data.Location; // Pass the original full string for JS parsing
+                    ViewBag.CurrentSpecificAddress = parsedSpecificAddress; // Pass the parsed specific address
+
                     var userId = HttpContext.Session.GetInt32("UserId");
                     await LoadUserBalanceForAllActions();
                     return View(updateDto);
@@ -466,7 +516,7 @@ namespace ProductManagementWebClient.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(JobPostUpdateDto model, IFormFile? ImageMainFile, IFormFile? Image2File, IFormFile? Image3File, IFormFile? Image4File, string? selectedCategoryIds)
+        public async Task<IActionResult> Edit(JobPostUpdateDto model, IFormFile? ImageMainFile, IFormFile? Image2File, IFormFile? Image3File, IFormFile? Image4File, string? selectedCategoryIds, string? specificAddress, string? selectedProvinceName, string? selectedDistrictName, string? selectedWardName)
         {
             try
             {
@@ -486,29 +536,49 @@ namespace ProductManagementWebClient.Controllers
                     }
                 }
 
+                // Construct Location string from specific address, selected province, district, ward
+                var locationParts = new List<string>();
+                if (!string.IsNullOrEmpty(specificAddress))
+                {
+                    locationParts.Add(specificAddress);
+                }
+                if (!string.IsNullOrEmpty(selectedWardName) && selectedWardName != "-- Chọn Phường/Xã --")
+                {
+                    locationParts.Add(selectedWardName);
+                }
+                if (!string.IsNullOrEmpty(selectedDistrictName) && selectedDistrictName != "-- Chọn Quận/Huyện --")
+                {
+                    locationParts.Add(selectedDistrictName);
+                }
+                if (!string.IsNullOrEmpty(selectedProvinceName) && selectedProvinceName != "-- Chọn Tỉnh/Thành phố --")
+                {
+                    locationParts.Add(selectedProvinceName);
+                }
+                model.Location = string.Join(", ", locationParts);
+
                 // Get current job post to preserve existing images if no new images are uploaded
                 var currentJobPostResponse = await _apiHelper.GetAsync<ApiResponseDto<JobPostListDto>>($"api/JobPostManagementApi/{model.Id}");
 
                 if (currentJobPostResponse?.Success == true && currentJobPostResponse.Data != null)
                 {
                     // Preserve existing images if no new ones uploaded
-                    if (string.IsNullOrEmpty(model.ImageMain))
+                    if (ImageMainFile == null)
                         model.ImageMain = currentJobPostResponse.Data.ImageMain;
-                    if (string.IsNullOrEmpty(model.Image2))
+                    if (Image2File == null)
                         model.Image2 = currentJobPostResponse.Data.Image2;
-                    if (string.IsNullOrEmpty(model.Image3))
+                    if (Image3File == null)
                         model.Image3 = currentJobPostResponse.Data.Image3;
-                    if (string.IsNullOrEmpty(model.Image4))
+                    if (Image4File == null)
                         model.Image4 = currentJobPostResponse.Data.Image4;
                 }
 
                 // Handle image uploads
                 var imageFiles = new[] {
-                    new { File = ImageMainFile, PropertyName = "ImageMain", CurrentPath = model.ImageMain },
-                    new { File = Image2File, PropertyName = "Image2", CurrentPath = model.Image2 },
-                    new { File = Image3File, PropertyName = "Image3", CurrentPath = model.Image3 },
-                    new { File = Image4File, PropertyName = "Image4", CurrentPath = model.Image4 }
-                };
+                  new { File = ImageMainFile, PropertyName = "ImageMain", CurrentPath = model.ImageMain },
+                  new { File = Image2File, PropertyName = "Image2", CurrentPath = model.Image2 },
+                  new { File = Image3File, PropertyName = "Image3", CurrentPath = model.Image3 },
+                  new { File = Image4File, PropertyName = "Image4", CurrentPath = model.Image4 }
+              };
 
                 foreach (var imageFile in imageFiles)
                 {
@@ -554,6 +624,55 @@ namespace ProductManagementWebClient.Controllers
                     }
                 }
 
+                // Manual validation for required fields (re-add for edit)
+                if (string.IsNullOrWhiteSpace(model.Title))
+                {
+                    ModelState.AddModelError("Title", "Tiêu đề là bắt buộc");
+                }
+                else if (model.Title.Length > 255)
+                {
+                    ModelState.AddModelError("Title", "Tiêu đề không được vượt quá 255 ký tự");
+                }
+
+                if (string.IsNullOrWhiteSpace(model.Description))
+                {
+                    ModelState.AddModelError("Description", "Mô tả công việc là bắt buộc");
+                }
+
+                if (string.IsNullOrWhiteSpace(model.Location))
+                {
+                    ModelState.AddModelError("Location", "Địa điểm là bắt buộc");
+                }
+                else if (model.Location.Length > 255)
+                {
+                    ModelState.AddModelError("Location", "Địa điểm không được vượt quá 255 ký tự");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    ViewBag.ErrorMessage = "Vui lòng kiểm tra lại thông tin đã nhập";
+                    // Re-populate current categories for view if validation fails
+                    ViewBag.CurrentCategoryIds = string.Join(",", model.CategoryIds ?? new List<int>());
+                    // Re-parse location for view if validation fails
+                    string fullLocation = model.Location;
+                    string parsedSpecificAddress = "";
+                    string parsedLocationForDropdowns = "";
+                    var parts = fullLocation.Split(new[] { ", " }, StringSplitOptions.None).ToList();
+                    if (parts.Count >= 3)
+                    {
+                        parsedLocationForDropdowns = string.Join(", ", parts.Skip(parts.Count - 3));
+                        parsedSpecificAddress = string.Join(", ", parts.Take(parts.Count - 3));
+                    }
+                    else if (parts.Count > 0)
+                    {
+                        parsedSpecificAddress = fullLocation;
+                        parsedLocationForDropdowns = "";
+                    }
+                    ViewBag.CurrentLocation = parsedLocationForDropdowns; // This will be used by JS to pre-select dropdowns
+                    ViewBag.CurrentSpecificAddress = parsedSpecificAddress; // New property
+                    return View(model);
+                }
+
                 // Call API to update
                 var response = await _apiHelper.PutAsync<ApiResponseDto<bool>>($"api/JobPostManagementApi/{model.Id}", model);
 
@@ -564,6 +683,25 @@ namespace ProductManagementWebClient.Controllers
                 }
 
                 ViewBag.ErrorMessage = response?.Message ?? "Không thể cập nhật bài đăng. Vui lòng thử lại.";
+                // Re-populate current categories for view if API call fails
+                ViewBag.CurrentCategoryIds = string.Join(",", model.CategoryIds ?? new List<int>());
+                // Re-parse location for view if API call fails
+                string fullLocationAfterFail = model.Location;
+                string parsedSpecificAddressAfterFail = "";
+                string parsedLocationForDropdownsAfterFail = "";
+                var partsAfterFail = fullLocationAfterFail.Split(new[] { ", " }, StringSplitOptions.None).ToList();
+                if (partsAfterFail.Count >= 3)
+                {
+                    parsedLocationForDropdownsAfterFail = string.Join(", ", partsAfterFail.Skip(partsAfterFail.Count - 3));
+                    parsedSpecificAddressAfterFail = string.Join(", ", partsAfterFail.Take(partsAfterFail.Count - 3));
+                }
+                else if (partsAfterFail.Count > 0)
+                {
+                    parsedSpecificAddressAfterFail = fullLocationAfterFail;
+                    parsedLocationForDropdownsAfterFail = "";
+                }
+                ViewBag.CurrentLocation = parsedLocationForDropdownsAfterFail; // This will be used by JS to pre-select dropdowns
+                ViewBag.CurrentSpecificAddress = parsedSpecificAddressAfterFail; // New property
                 return View(model);
             }
             catch (Exception ex)

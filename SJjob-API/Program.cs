@@ -80,6 +80,9 @@ builder.Services.AddSingleton<PayOS>(provider =>
     return new PayOS(clientId, apiKey, checksumKey);
 });
 
+// Add HttpClient for external API calls
+builder.Services.AddHttpClient();
+
 
 // Add PayOS Service
 builder.Services.AddScoped<PayOSService>();
@@ -97,6 +100,7 @@ builder.Services.AddScoped<ApplicationManagementDAO>();
 builder.Services.AddScoped<CreditDAO>();
 builder.Services.AddScoped<CustomerServiceDAO>();
 builder.Services.AddScoped<CreditTransactionDAO>();
+builder.Services.AddScoped<LocationDAO>(); 
 
 // Register Repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -111,6 +115,7 @@ builder.Services.AddScoped<IApplicationManagementRepository, ApplicationManageme
 builder.Services.AddScoped<ICreditRepository, CreditRepository>();
 builder.Services.AddScoped<ICustomerServiceRepository, CustomerServiceRepository>();
 builder.Services.AddScoped<ICreditTransactionRepository, CreditTransactionRepository>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 
 
 builder.Services.AddScoped<EmailService>();

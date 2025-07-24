@@ -20,6 +20,9 @@ namespace BusinessObjects.DTOs.JobPost
         [StringLength(255, ErrorMessage = "Location cannot exceed 255 characters")]
         public string? Location { get; set; }
 
+        [StringLength(255, ErrorMessage = "Specific address cannot exceed 255 characters")]
+        public string? SpecificAddress { get; set; } // New field for specific address
+
         [Range(0, double.MaxValue, ErrorMessage = "Minimum salary must be positive")]
         public decimal? SalaryMin { get; set; }
 
