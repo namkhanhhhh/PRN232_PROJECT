@@ -18,7 +18,7 @@ namespace DataAccess.DAO
                 .Include(jp => jp.User)
                 .Include(jp => jp.JobPostCategories)
                     .ThenInclude(jpc => jpc.Category)
-                .Where(jp => jp.Status == "active");
+                .Where(jp => jp.Status == "active" && (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today))); // Added deadline filter
 
             if (!string.IsNullOrEmpty(keyword))
             {
@@ -51,7 +51,10 @@ namespace DataAccess.DAO
             }
 
             return await query
-                .OrderByDescending(jp => jp.CreatedAt)
+                .OrderBy(jp => jp.PostType == "diamond" ? 1 : // Custom sorting for post_type
+                               jp.PostType == "gold" ? 2 :
+                               jp.PostType == "silver" ? 3 : 4)
+                .ThenByDescending(jp => jp.CreatedAt) // Then by creation date
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -59,7 +62,7 @@ namespace DataAccess.DAO
 
         public async Task<int> GetJobPostsCountAsync(string? keyword = null, string? location = null, string? jobType = null, decimal? minSalary = null, decimal? maxSalary = null, int? categoryId = null)
         {
-            var query = _context.JobPosts.Where(jp => jp.Status == "active");
+            var query = _context.JobPosts.Where(jp => jp.Status == "active" && (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today))); // Added deadline filter
 
             if (!string.IsNullOrEmpty(keyword))
             {
@@ -101,7 +104,7 @@ namespace DataAccess.DAO
                     .ThenInclude(u => u.UserDetails)
                 .Include(jp => jp.JobPostCategories)
                     .ThenInclude(jpc => jpc.Category)
-                .FirstOrDefaultAsync(jp => jp.Id == id);
+                .FirstOrDefaultAsync(jp => jp.Id == id && (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today))); // Added deadline filter
         }
 
         public async Task<List<JobCategory>> GetFeaturedCategoriesAsync(int count = 8)
@@ -132,7 +135,7 @@ namespace DataAccess.DAO
                 .Include(jp => jp.User)
                 .Include(jp => jp.JobPostCategories)
                     .ThenInclude(jpc => jpc.Category)
-                .Where(jp => jp.Status == "active" && jp.PostType == "diamond")
+                .Where(jp => jp.Status == "active" && jp.PostType == "diamond" && (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today))) // Added deadline filter
                 .OrderByDescending(jp => jp.CreatedAt)
                 .Take(count)
                 .ToListAsync();
@@ -144,7 +147,7 @@ namespace DataAccess.DAO
                 .Include(jp => jp.User)
                 .Include(jp => jp.JobPostCategories)
                     .ThenInclude(jpc => jpc.Category)
-                .Where(jp => jp.Status == "active")
+                .Where(jp => jp.Status == "active" && (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today))) // Added deadline filter
                 .OrderByDescending(jp => jp.ViewCount)
                 .Take(count)
                 .ToListAsync();
@@ -156,8 +159,11 @@ namespace DataAccess.DAO
                 .Include(jp => jp.User)
                 .Include(jp => jp.JobPostCategories)
                     .ThenInclude(jpc => jpc.Category)
-                .Where(jp => jp.Status == "active")
-                .OrderByDescending(jp => jp.CreatedAt)
+                .Where(jp => jp.Status == "active" && (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today))) // Added deadline filter
+                .OrderBy(jp => jp.PostType == "diamond" ? 1 : // Custom sorting for post_type
+                               jp.PostType == "gold" ? 2 :
+                               jp.PostType == "silver" ? 3 : 4)
+                .ThenByDescending(jp => jp.CreatedAt) // Then by creation date
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -166,7 +172,7 @@ namespace DataAccess.DAO
         public async Task<int> GetAllJobsCountAsync()
         {
             return await _context.JobPosts
-                .Where(jp => jp.Status == "active")
+                .Where(jp => jp.Status == "active" && (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today))) // Added deadline filter
                 .CountAsync();
         }
 
@@ -176,8 +182,9 @@ namespace DataAccess.DAO
                 .Include(jp => jp.User)
                 .Include(jp => jp.JobPostCategories)
                     .ThenInclude(jpc => jpc.Category)
-                .Where(jp => jp.Id != jobId && 
-                           jp.Status == "active" && 
+                .Where(jp => jp.Id != jobId &&
+                           jp.Status == "active" &&
+                           (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today)) && // Added deadline filter
                            jp.JobPostCategories.Any(jpc => categoryIds.Contains(jpc.CategoryId)))
                 .OrderByDescending(jp => jp.CreatedAt)
                 .Take(count)
@@ -201,9 +208,13 @@ namespace DataAccess.DAO
                 .Include(jp => jp.User)
                 .Include(jp => jp.JobPostCategories)
                     .ThenInclude(jpc => jpc.Category)
-                .Where(jp => jp.Status == "active" && 
+                .Where(jp => jp.Status == "active" &&
+                           (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today)) && // Added deadline filter
                            jp.JobPostCategories.Any(jpc => categoryIds.Contains(jpc.CategoryId)))
-                .OrderByDescending(jp => jp.CreatedAt)
+                .OrderBy(jp => jp.PostType == "diamond" ? 1 : // Custom sorting for post_type
+                               jp.PostType == "gold" ? 2 :
+                               jp.PostType == "silver" ? 3 : 4)
+                .ThenByDescending(jp => jp.CreatedAt) // Then by creation date
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -222,7 +233,8 @@ namespace DataAccess.DAO
             }
 
             return await _context.JobPosts
-                .Where(jp => jp.Status == "active" && 
+                .Where(jp => jp.Status == "active" &&
+                           (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today)) && // Added deadline filter
                            jp.JobPostCategories.Any(jpc => categoryIds.Contains(jpc.CategoryId)))
                 .CountAsync();
         }
@@ -245,7 +257,7 @@ namespace DataAccess.DAO
                 .Include(jp => jp.User)
                 .Include(jp => jp.JobPostCategories)
                     .ThenInclude(jpc => jpc.Category)
-                .Where(jp => jp.UserId == employerId && jp.Status == "active")
+                .Where(jp => jp.UserId == employerId && jp.Status == "active" && (jp.Deadline == null || jp.Deadline >= DateOnly.FromDateTime(DateTime.Today))) // Added deadline filter
                 .OrderByDescending(jp => jp.CreatedAt)
                 .ToListAsync();
         }

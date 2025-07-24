@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repository.Interfaces;
 using System.Security.Claims;
+using BCrypt.Net; // Ensure this is included for password hashing
 
 namespace Sjob_API.Controllers
 {
@@ -285,7 +286,7 @@ namespace Sjob_API.Controllers
         }
 
         [HttpGet("category/{categoryId}")]
-        public async Task<ActionResult<PaginatedResponseDto<JobPostDto>>> GetJobsByCategory(int categoryId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] int? userId = null)
+        public async Task<ActionResult<PaginatedResponseDto<JobPostDto>>> GetJobsByCategory(int categoryId, [FromQuery] int page = 1, [FromQuery] int pageSize = 9, [FromQuery] int? userId = null)
         {
             try
             {
@@ -676,7 +677,7 @@ namespace Sjob_API.Controllers
                     Id = user.Id,
                     Username = user.Username,
                     Email = user.Email,
-                    Avatar = user.Avatar,
+                    Avatar = user.Avatar, // Ensure avatar is included
                     Status = user.Status,
                     RoleName = user.Role?.Name ?? "",
                     FirstName = userDetail?.FirstName,
@@ -724,7 +725,7 @@ namespace Sjob_API.Controllers
 
         [HttpPost("profile/update")]
         [Authorize(Roles = "Worker")]
-        public async Task<ActionResult<ApiResponseDto>> UpdateProfile([FromBody] UpdateProfileDto request)
+        public async Task<ActionResult<ApiResponseDto>> UpdateProfile([FromForm] UpdateProfileDto request) // [FromForm] is correct for multipart/form-data
         {
             try
             {
@@ -743,6 +744,10 @@ namespace Sjob_API.Controllers
 
                 // Update user basic info
                 user.Email = request.Email;
+                if (!string.IsNullOrEmpty(request.Avatar)) // Update avatar if provided
+                {
+                    user.Avatar = request.Avatar;
+                }
                 await _userRepository.UpdateUserAsync(user);
 
                 // Update or create user detail

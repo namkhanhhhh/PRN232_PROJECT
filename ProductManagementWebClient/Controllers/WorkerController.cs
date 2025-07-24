@@ -6,6 +6,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductManagementWebClient.Helpers;
 using System.Security.Claims;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using System;
 
 namespace ProductManagementWebClient.Controllers
 {
@@ -13,10 +19,12 @@ namespace ProductManagementWebClient.Controllers
     {
         private readonly ApiHelper _apiHelper;
         private readonly int _pageSize = 10;
+        private readonly IConfiguration _configuration;
 
-        public WorkerController(ApiHelper apiHelper)
+        public WorkerController(ApiHelper apiHelper, IConfiguration configuration)
         {
             _apiHelper = apiHelper;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -429,10 +437,8 @@ namespace ProductManagementWebClient.Controllers
 
                 if (response?.Success == true && response.Data != null)
                 {
-                    // Đảm bảo UserDetail không null
                     var userDetail = response.Data.UserDetail ?? new UserDetailDto();
 
-                    // Map từ UserDto sang EditProfileViewModel
                     var viewModel = new EditProfileViewModel
                     {
                         FirstName = response.Data.FirstName,
@@ -445,11 +451,11 @@ namespace ProductManagementWebClient.Controllers
                         ExperienceYears = userDetail.ExperienceYears,
                         Skills = userDetail.Skills,
                         Education = userDetail.Education,
-                        DesiredPosition = response.Data.UserDetail?.DesiredPosition,
-                        DesiredSalary = response.Data.UserDetail?.DesiredSalary,
-                        DesiredLocation = response.Data.UserDetail?.DesiredLocation,
-                        Availability = response.Data.UserDetail?.Availability,
-                        CurrentAvatar = response.Data.Avatar
+                        DesiredPosition = userDetail.DesiredPosition,
+                        DesiredSalary = userDetail.DesiredSalary,
+                        DesiredLocation = userDetail.DesiredLocation,
+                        Availability = userDetail.Availability,
+                        CurrentAvatar = response.Data.Avatar // Pass current avatar path
                     };
 
                     return View(viewModel);
@@ -468,16 +474,65 @@ namespace ProductManagementWebClient.Controllers
         [HttpPost]
         [Authorize(Roles = "Worker")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+        public async Task<IActionResult> EditProfile(EditProfileViewModel model, IFormFile? avatarFile) // IFormFile is a parameter, not in model
         {
-            if (!ModelState.IsValid)
+            // Kiểm tra session trước
+            var role = HttpContext.Session.GetString("Role");
+            if (string.IsNullOrEmpty(role) || role.ToLower() != "worker")
             {
-                return View(model);
+                return RedirectToAction("Index", "Login");
             }
 
             try
             {
-                // Tạo DTO để gửi đến API
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
+
+                // Handle avatar file upload
+                string? avatarPath = model.CurrentAvatar; // Start with current avatar path
+
+                if (avatarFile != null && avatarFile.Length > 0)
+                {
+                    // Validate file size (max 5MB)
+                    if (avatarFile.Length > 5 * 1024 * 1024)
+                    {
+                        TempData["ErrorMessage"] = "Kích thước file không được vượt quá 5MB";
+                        return View(model);
+                    }
+
+                    // Validate file type
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var extension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        TempData["ErrorMessage"] = "Chỉ chấp nhận file JPG, PNG, hoặc GIF";
+                        return View(model);
+                    }
+
+                    // Save file to wwwroot/images/avatars
+                    var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "avatars");
+                    if (!Directory.Exists(uploadsPath))
+                    {
+                        Directory.CreateDirectory(uploadsPath);
+                    }
+
+                    // Generate unique filename
+                    var fileName = $"{Guid.NewGuid()}{extension}";
+                    var filePath = Path.Combine(uploadsPath, fileName);
+
+                    // Save file
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await avatarFile.CopyToAsync(stream);
+                    }
+
+                    // Set avatar path for DTO
+                    avatarPath = $"/images/avatars/{fileName}";
+                }
+
+                // Create DTO to send to API
                 var updateProfileDto = new UpdateProfileDto
                 {
                     FirstName = model.FirstName ?? "",
@@ -493,22 +548,90 @@ namespace ProductManagementWebClient.Controllers
                     DesiredPosition = model.DesiredPosition,
                     DesiredSalary = model.DesiredSalary,
                     DesiredLocation = model.DesiredLocation,
-                    Availability = model.Availability
+                    Availability = model.Availability,
+                    Avatar = avatarPath // Pass the new or existing avatar path
                 };
 
-                var response = await _apiHelper.PostAsync<ApiResponseDto>("api/WorkerApi/profile/update", updateProfileDto);
+                // Use HttpClient with proper configuration
+                var httpClient = new HttpClient();
+                var token = HttpContext.Session.GetString("Token");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    httpClient.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Bearer", token);
+                }
 
-                if (response?.Success == true)
+                var baseUrl = _configuration["ApiSettings:BaseUrl"];
+                if (string.IsNullOrEmpty(baseUrl))
+                {
+                    throw new InvalidOperationException("ApiSettings:BaseUrl is not configured.");
+                }
+
+                // Use MultipartFormDataContent to send string data and potentially file data (though file is saved locally)
+                // This is to match the [FromForm] expectation on the API side for consistency,
+                // even if the actual file bytes aren't sent in this specific request.
+                // We are sending the path as a string.
+                using var formData = new MultipartFormDataContent();
+                formData.Add(new StringContent(updateProfileDto.FirstName), "FirstName");
+                formData.Add(new StringContent(updateProfileDto.LastName), "LastName");
+                formData.Add(new StringContent(updateProfileDto.Email), "Email");
+
+                if (!string.IsNullOrEmpty(updateProfileDto.PhoneNumber))
+                    formData.Add(new StringContent(updateProfileDto.PhoneNumber), "PhoneNumber");
+                if (!string.IsNullOrEmpty(updateProfileDto.Address))
+                    formData.Add(new StringContent(updateProfileDto.Address), "Address");
+                if (!string.IsNullOrEmpty(updateProfileDto.Headline))
+                    formData.Add(new StringContent(updateProfileDto.Headline), "Headline");
+                if (!string.IsNullOrEmpty(updateProfileDto.Bio))
+                    formData.Add(new StringContent(updateProfileDto.Bio), "Bio");
+                if (updateProfileDto.ExperienceYears.HasValue)
+                    formData.Add(new StringContent(updateProfileDto.ExperienceYears.Value.ToString()), "ExperienceYears");
+                if (!string.IsNullOrEmpty(updateProfileDto.Skills))
+                    formData.Add(new StringContent(updateProfileDto.Skills), "Skills");
+                if (!string.IsNullOrEmpty(updateProfileDto.Education))
+                    formData.Add(new StringContent(updateProfileDto.Education), "Education");
+                if (!string.IsNullOrEmpty(updateProfileDto.DesiredPosition))
+                    formData.Add(new StringContent(updateProfileDto.DesiredPosition), "DesiredPosition");
+                if (updateProfileDto.DesiredSalary.HasValue)
+                    formData.Add(new StringContent(updateProfileDto.DesiredSalary.Value.ToString()), "DesiredSalary");
+                if (!string.IsNullOrEmpty(updateProfileDto.DesiredLocation))
+                    formData.Add(new StringContent(updateProfileDto.DesiredLocation), "DesiredLocation");
+                if (!string.IsNullOrEmpty(updateProfileDto.Availability))
+                    formData.Add(new StringContent(updateProfileDto.Availability), "Availability");
+                if (!string.IsNullOrEmpty(updateProfileDto.Avatar))
+                    formData.Add(new StringContent(updateProfileDto.Avatar), "Avatar"); // Send the avatar path
+
+                var response = await httpClient.PostAsync($"{baseUrl}/api/WorkerApi/profile/update", formData);
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"API Response Status: {response.StatusCode}");
+                Console.WriteLine($"API Response Content: {responseContent}");
+
+                if (response.IsSuccessStatusCode)
                 {
                     TempData["SuccessMessage"] = "Cập nhật hồ sơ thành công";
                     return RedirectToAction("Profile");
                 }
+                else
+                {
+                    try
+                    {
+                        var errorResponse = JsonSerializer.Deserialize<ApiResponseDto>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        TempData["ErrorMessage"] = errorResponse?.Message ?? $"Cập nhật hồ sơ thất bại. Status: {response.StatusCode}";
+                    }
+                    catch
+                    {
+                        TempData["ErrorMessage"] = $"Cập nhật hồ sơ thất bại. Status: {response.StatusCode}. Response: {responseContent}";
+                    }
 
-                TempData["ErrorMessage"] = response?.Message ?? "Không thể cập nhật hồ sơ";
-                return View(model);
+                    return View(model);
+                }
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Exception in EditProfile: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
                 TempData["ErrorMessage"] = $"Đã xảy ra lỗi khi cập nhật hồ sơ: {ex.Message}";
                 return View(model);
             }

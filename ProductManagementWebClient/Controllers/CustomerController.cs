@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using ProductManagementWebClient.Helpers;
 using System.Security.Claims;
 using BusinessObjects.DTOs.Authen;
+using System.Text.Json;
+using BusinessObjects.DTOs; // Add this for JSON deserialization
 
 namespace ProductManagementWebClient.Controllers
 {
@@ -134,7 +136,7 @@ namespace ProductManagementWebClient.Controllers
                 // Map role name to role ID
                 int roleId = selectedRole.ToLower() switch
                 {
-                    "worker" => 4, // Assuming Worker role has ID 2
+                    "worker" => 4, // Assuming Worker role has ID 4
                     "employer" => 3, // Assuming Employer role has ID 3
                     _ => 4 // Default to Worker
                 };
@@ -147,12 +149,17 @@ namespace ProductManagementWebClient.Controllers
 
                 try
                 {
-                    var response = await _apiHelper.PostAsync<ApiResponse>("api/CustomerApi/assign-role", assignRoleDto);
+                    // Change the expected response type to ApiResponse<LoginResponseDto>
+                    var response = await _apiHelper.PostAsync<ApiResponse<LoginResponseDto>>("api/CustomerApi/assign-role", assignRoleDto);
 
-                    if (response?.Success == true)
+                    if (response?.Success == true && response.Data != null)
                     {
-                        // Update session with new role information
-                        HttpContext.Session.SetString("Role", selectedRole.ToLower());
+                        // Update session with new role information and the new token
+                        HttpContext.Session.SetString("Token", response.Data.Token);
+                        HttpContext.Session.SetString("Role", response.Data.User.RoleName.ToLower());
+                        HttpContext.Session.SetInt32("UserId", response.Data.User.Id);
+                        HttpContext.Session.SetString("Username", response.Data.User.Username);
+                        HttpContext.Session.SetString("Email", response.Data.User.Email);
                         HttpContext.Session.SetString("RoleAssigned", "true");
 
                         TempData["SuccessMessage"] = $"Role {selectedRole} assigned successfully!";

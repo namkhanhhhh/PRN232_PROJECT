@@ -2,6 +2,9 @@
 using BusinessObjects.DTOs.Common;
 using Microsoft.AspNetCore.Mvc;
 using Repository.Interfaces;
+using BusinessObjects.DTOs.Authen; // Add this for LoginResponseDto
+using Sjob_API.Services;
+using BusinessObjects.DTOs; // Add this for JwtService
 
 namespace Sjob_API.Controllers
 {
@@ -10,10 +13,14 @@ namespace Sjob_API.Controllers
     public class CustomerApiController : ControllerBase
     {
         private readonly ICustomerRepository _customerRepository;
+        private readonly IUserRepository _userRepository; // Inject IUserRepository
+        private readonly JwtService _jwtService; // Inject JwtService
 
-        public CustomerApiController(ICustomerRepository customerRepository)
+        public CustomerApiController(ICustomerRepository customerRepository, IUserRepository userRepository, JwtService jwtService)
         {
             _customerRepository = customerRepository;
+            _userRepository = userRepository; // Initialize
+            _jwtService = jwtService; // Initialize
         }
 
         [HttpGet("roles")]
@@ -37,7 +44,7 @@ namespace Sjob_API.Controllers
         }
 
         [HttpPost("assign-role")]
-        public async Task<ActionResult<ApiResponse>> AssignRole([FromBody] AssignRoleDto dto)
+        public async Task<ActionResult<ApiResponse<LoginResponseDto>>> AssignRole([FromBody] AssignRoleDto dto) // Change return type
         {
             try
             {
@@ -47,21 +54,51 @@ namespace Sjob_API.Controllers
                         .SelectMany(v => v.Errors)
                         .Select(e => e.ErrorMessage)
                         .ToList();
-                    return BadRequest(ApiResponse.ErrorResult("Validation failed", errors));
+                    return BadRequest(ApiResponse<LoginResponseDto>.ErrorResult("Validation failed", errors));
                 }
 
                 var success = await _customerRepository.AssignRoleAsync(dto.UserId, dto.RoleId);
 
                 if (success)
                 {
-                    return Ok(ApiResponse.SuccessResult("Role assigned successfully"));
+                    // Fetch the user again to get the updated role
+                    var updatedUser = await _userRepository.GetUserByIdAsync(dto.UserId);
+                    if (updatedUser == null)
+                    {
+                        return NotFound(ApiResponse<LoginResponseDto>.ErrorResult("User not found after role assignment."));
+                    }
+
+                    // Generate a new JWT token with the updated role
+                    string newToken = _jwtService.GenerateJwtToken(updatedUser, updatedUser.Role?.Name ?? "Customer");
+
+                    // Map to UserDto for the response
+                    var userDetail = await _userRepository.GetUserDetailByUserIdAsync(updatedUser.Id);
+                    var userDto = new UserDto
+                    {
+                        Id = updatedUser.Id,
+                        Email = updatedUser.Email,
+                        Username = updatedUser.Username,
+                        Avatar = updatedUser.Avatar,
+                        Status = updatedUser.Status,
+                        RoleName = updatedUser.Role?.Name ?? "",
+                        FirstName = userDetail?.FirstName,
+                        LastName = userDetail?.LastName
+                    };
+
+                    return Ok(ApiResponse<LoginResponseDto>.SuccessResult(new LoginResponseDto
+                    {
+                        Success = true,
+                        Message = "Role assigned successfully",
+                        User = userDto,
+                        Token = newToken // Return the new token
+                    }));
                 }
 
-                return BadRequest(ApiResponse.ErrorResult("Failed to assign role"));
+                return BadRequest(ApiResponse<LoginResponseDto>.ErrorResult("Failed to assign role"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ApiResponse.ErrorResult($"Error assigning role: {ex.Message}"));
+                return StatusCode(500, ApiResponse<LoginResponseDto>.ErrorResult($"Error assigning role: {ex.Message}"));
             }
         }
 

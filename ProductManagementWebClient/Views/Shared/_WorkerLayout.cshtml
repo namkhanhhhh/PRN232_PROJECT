@@ -106,24 +106,24 @@
 
 <body>
     <header>
-        <nav class="bg-white shadow-lg">
+        <nav class="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg text-white">
             <div class="container mx-auto px-4">
                 <div class="flex justify-between items-center py-4">
                     <div class="flex items-center">
-                        <a asp-controller="Worker" asp-action="Index" class="text-2xl font-bold text-blue-600">
+                        <a asp-controller="Worker" asp-action="Index" class="text-2xl font-bold text-white">
                             SJOB
                         </a>
                     </div>
 
                     <div class="hidden md:flex items-center space-x-6">
-                        <a asp-controller="Worker" asp-action="Index" class="text-gray-700 hover:text-blue-600 transition duration-300">
+                        <a asp-controller="Worker" asp-action="Index" class="text-white hover:text-blue-200 transition duration-300">
                             Tìm việc làm
                         </a>
 
                         @if (User.Identity.IsAuthenticated)
                         {
                             <!-- Wishlist with badge -->
-                            <a asp-controller="Worker" asp-action="Wishlist" class="relative text-gray-700 hover:text-blue-600 transition duration-300">
+                            <a asp-controller="Worker" asp-action="Wishlist" class="relative text-white hover:text-blue-200 transition duration-300">
                                 <span class="flex items-center">
                                     <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.682l-1.318-1.364a4.5 4.5 0 00-6.364 0z"></path>
@@ -134,7 +134,7 @@
                             </a>
 
                             <!-- Applications with badge -->
-                            <a asp-controller="Worker" asp-action="MyApplications" class="relative text-gray-700 hover:text-blue-600 transition duration-300">
+                            <a asp-controller="Worker" asp-action="MyApplications" class="relative text-white hover:text-blue-200 transition duration-300">
                                 <span class="flex items-center">
                                     <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -146,9 +146,9 @@
 
                             <!-- User Dropdown -->
                             <div class="user-dropdown">
-                                <button id="userDropdownButton" class="flex items-center text-gray-700 hover:text-blue-600 transition duration-300">
-                                    <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-2">
-                                        <span class="text-gray-600 font-semibold text-sm">@User.Identity.Name?.Substring(0, 1).ToUpper()</span>
+                                <button id="userDropdownButton" class="flex items-center text-white hover:text-blue-200 transition duration-300">
+                                    <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center mr-2">
+                                        <span class="text-white font-semibold text-sm">@User.Identity.Name?.Substring(0, 1).ToUpper()</span>
                                     </div>
                                     <span>@User.Identity.Name</span>
                                     <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,10 +186,10 @@
                         }
                         else
                         {
-                            <a href="/Login" class="text-gray-700 hover:text-blue-600 transition duration-300">
+                            <a href="/Login" class="text-white hover:text-blue-200 transition duration-300">
                                 Đăng nhập
                             </a>
-                            <a href="/Register" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
+                            <a href="/Register" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-400 transition duration-300">
                                 Đăng ký
                             </a>
                         }
@@ -197,7 +197,7 @@
 
                     <!-- Mobile menu button -->
                     <div class="md:hidden">
-                        <button id="mobile-menu-button" class="text-gray-700 hover:text-blue-600">
+                        <button id="mobile-menu-button" class="text-white hover:text-blue-200">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                             </svg>
@@ -207,36 +207,36 @@
 
                 <!-- Mobile menu -->
                 <div id="mobile-menu" class="md:hidden hidden pb-4">
-                    <a asp-controller="Worker" asp-action="Index" class="block py-2 text-gray-700 hover:text-blue-600">
+                    <a asp-controller="Worker" asp-action="Index" class="block py-2 text-white hover:text-blue-200">
                         Tìm việc làm
                     </a>
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <a asp-controller="Worker" asp-action="Wishlist" class="block py-2 text-gray-700 hover:text-blue-600">
+                        <a asp-controller="Worker" asp-action="Wishlist" class="block py-2 text-white hover:text-blue-200">
                             Danh sách yêu thích
                         </a>
-                        <a asp-controller="Worker" asp-action="MyApplications" class="block py-2 text-gray-700 hover:text-blue-600">
+                        <a asp-controller="Worker" asp-action="MyApplications" class="block py-2 text-white hover:text-blue-200">
                             Đơn ứng tuyển của tôi
                         </a>
-                        <a asp-controller="Worker" asp-action="Profile" class="block py-2 text-gray-700 hover:text-blue-600">
+                        <a asp-controller="Worker" asp-action="Profile" class="block py-2 text-white hover:text-blue-200">
                             Hồ sơ của tôi
                         </a>
-                        <a asp-controller="Worker" asp-action="EditProfile" class="block py-2 text-gray-700 hover:text-blue-600">
+                        <a asp-controller="Worker" asp-action="EditProfile" class="block py-2 text-white hover:text-blue-200">
                             Chỉnh sửa hồ sơ
                         </a>
-                        <a asp-controller="Worker" asp-action="ChangePassword" class="block py-2 text-gray-700 hover:text-blue-600">
+                        <a asp-controller="Worker" asp-action="ChangePassword" class="block py-2 text-white hover:text-blue-200">
                             Đổi mật khẩu
                         </a>
-                        <a href="/Login/Logout" class="block py-2 text-gray-700 hover:text-blue-600">
+                        <a href="/Login/Logout" class="block py-2 text-white hover:text-blue-200">
                             Đăng xuất
                         </a>
                     }
                     else
                     {
-                        <a href="/Login" class="block py-2 text-gray-700 hover:text-blue-600">
+                        <a href="/Login" class="block py-2 text-white hover:text-blue-200">
                             Đăng nhập
                         </a>
-                        <a href="/Register" class="block py-2 text-gray-700 hover:text-blue-600">
+                        <a href="/Register" class="block py-2 text-white hover:text-blue-200">
                             Đăng ký
                         </a>
                     }

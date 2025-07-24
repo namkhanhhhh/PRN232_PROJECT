@@ -5,24 +5,26 @@
 }
 
 <div class="bg-blue-50 py-6">
-    <div class="container mx-auto px-4">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-wrap items-center text-sm text-gray-600">
-            <a asp-controller="Worker" asp-action="Index" class="hover:text-blue-600">Trang chủ</a>
-            <span class="mx-2">/</span>
-            <span class="text-gray-800">Hồ sơ nhà tuyển dụng</span>
+            <a asp-controller="Worker" asp-action="Index" class="hover:text-blue-600 transition-colors duration-200">Trang chủ</a>
+            <span class="mx-2 text-gray-400">/</span>
+            <span class="text-gray-800 font-medium">Hồ sơ nhà tuyển dụng</span>
         </div>
     </div>
 </div>
 
-<div class="container mx-auto px-4 py-8">
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
         <!-- Cover Image -->
-        <div class="h-48 bg-gradient-to-r from-blue-500 to-blue-700"></div>
+        <div class="h-48 bg-gradient-to-r from-blue-500 to-blue-700 relative">
+            <div class="absolute inset-0 bg-black opacity-20"></div>
+        </div>
 
         <!-- Profile Info -->
-        <div class="relative px-6 pb-6">
-            <div class="flex flex-col md:flex-row md:items-end">
-                <div class="w-24 h-24 rounded-full border-4 border-white bg-white -mt-12 overflow-hidden">
+        <div class="relative px-6 pb-6 md:px-8">
+            <div class="flex flex-col md:flex-row md:items-end -mt-16 md:-mt-12">
+                <div class="w-32 h-32 rounded-full border-4 border-white bg-white overflow-hidden shadow-md flex items-center justify-center">
                     @if (!string.IsNullOrEmpty(Model.User.Avatar))
                     {
                         <img src="@Model.User.Avatar" alt="@Model.User.Username" class="w-full h-full object-cover">
@@ -30,60 +32,60 @@
                     else
                     {
                         <div class="w-full h-full bg-blue-600 flex items-center justify-center">
-                            <span class="text-white font-bold text-2xl">@Model.User.Username.Substring(0, 1).ToUpper()</span>
+                            <span class="text-white font-bold text-4xl">@Model.User.Username.Substring(0, 1).ToUpper()</span>
                         </div>
                     }
                 </div>
 
-                <div class="mt-4 md:mt-0 md:ml-4 md:mb-2">
-                    <h1 class="text-2xl font-bold text-gray-900">@Model.User.Username</h1>
+                <div class="mt-4 md:mt-0 md:ml-6 md:mb-2">
+                    <h1 class="text-3xl font-bold text-gray-900">@Model.User.Username</h1>
                     @if (Model.UserDetail != null && !string.IsNullOrEmpty(Model.UserDetail.CompanyName))
                     {
-                        <p class="text-gray-600">@Model.UserDetail.CompanyName</p>
+                        <p class="text-gray-600 text-lg mt-1">@Model.UserDetail.CompanyName</p>
                     }
                 </div>
             </div>
         </div>
 
         <!-- Tabs -->
-        <div class="border-t border-gray-200">
-            <div class="flex overflow-x-auto">
-                <button class="tab-button px-6 py-3 font-medium text-blue-600 border-b-2 border-blue-600" data-tab="about">
+        <div class="border-t border-gray-200 mt-6">
+            <div class="flex overflow-x-auto px-6 md:px-8">
+                <button class="tab-button px-6 py-3 font-semibold text-blue-600 border-b-2 border-blue-600 hover:text-blue-700 transition-colors duration-200 focus:outline-none" data-tab="about">
                     Giới thiệu
                 </button>
-                <button class="tab-button px-6 py-3 font-medium text-gray-500 hover:text-gray-700" data-tab="jobs">
+                <button class="tab-button px-6 py-3 font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 focus:outline-none" data-tab="jobs">
                     Việc làm (@Model.JobPosts.Count)
                 </button>
-                <button class="tab-button px-6 py-3 font-medium text-gray-500 hover:text-gray-700" data-tab="contact">
+                <button class="tab-button px-6 py-3 font-semibold text-gray-600 hover:text-blue-600 transition-colors duration-200 focus:outline-none" data-tab="contact">
                     Liên hệ
                 </button>
             </div>
         </div>
 
         <!-- Tab Content -->
-        <div class="p-6">
+        <div class="p-6 md:p-8">
             <!-- About Tab -->
             <div id="about-tab" class="tab-content">
                 @if (Model.UserDetail != null && !string.IsNullOrEmpty(Model.UserDetail.Bio))
                 {
-                    <div class="mb-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-3">Giới thiệu</h2>
-                        <div class="prose max-w-none text-gray-700">
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Giới thiệu</h2>
+                        <div class="prose max-w-none text-gray-700 leading-relaxed">
                             @Html.Raw(Model.UserDetail.Bio)
                         </div>
                     </div>
                 }
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 mb-3">Thông tin công ty</h2>
-                        <div class="space-y-3">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Thông tin công ty</h2>
+                        <div class="space-y-4">
                             @if (Model.UserDetail != null)
                             {
                                 @if (!string.IsNullOrEmpty(Model.UserDetail.CompanyName))
                                 {
                                     <div class="flex items-start">
-                                        <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                         </svg>
                                         <div>
@@ -96,7 +98,7 @@
                                 @if (!string.IsNullOrEmpty(Model.UserDetail.Industry))
                                 {
                                     <div class="flex items-start">
-                                        <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                         </svg>
                                         <div>
@@ -109,7 +111,7 @@
                                 @if (!string.IsNullOrEmpty(Model.UserDetail.CompanySize))
                                 {
                                     <div class="flex items-start">
-                                        <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                         </svg>
                                         <div>
@@ -122,12 +124,12 @@
                                 @if (!string.IsNullOrEmpty(Model.UserDetail.Website))
                                 {
                                     <div class="flex items-start">
-                                        <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
                                         </svg>
                                         <div>
                                             <p class="text-gray-600 font-medium">Website</p>
-                                            <a href="@Model.UserDetail.Website" target="_blank" class="text-blue-600 hover:text-blue-800">
+                                            <a href="@Model.UserDetail.Website" target="_blank" class="text-blue-600 hover:text-blue-800 transition-colors duration-200">
                                                 @Model.UserDetail.Website
                                             </a>
                                         </div>
@@ -136,7 +138,7 @@
                             }
 
                             <div class="flex items-start">
-                                <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                                 <div>
@@ -148,23 +150,23 @@
                     </div>
 
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900 mb-3">Thống kê</h2>
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Thống kê</h2>
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="bg-blue-50 p-4 rounded-lg text-center">
                                 <p class="text-gray-600 text-sm">Việc làm đang tuyển</p>
-                                <p class="text-2xl font-bold text-gray-900">@Model.JobPosts.Count(j => j.Status == "active")</p>
+                                <p class="text-3xl font-bold text-blue-700 mt-1">@Model.JobPosts.Count(j => j.Status == "active")</p>
                             </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="bg-blue-50 p-4 rounded-lg text-center">
                                 <p class="text-gray-600 text-sm">Tổng việc làm</p>
-                                <p class="text-2xl font-bold text-gray-900">@Model.JobPosts.Count</p>
+                                <p class="text-3xl font-bold text-blue-700 mt-1">@Model.JobPosts.Count</p>
                             </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="bg-blue-50 p-4 rounded-lg text-center">
                                 <p class="text-gray-600 text-sm">Phản hồi trung bình</p>
-                                <p class="text-2xl font-bold text-gray-900">24h</p>
+                                <p class="text-3xl font-bold text-blue-700 mt-1">24h</p>
                             </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="bg-blue-50 p-4 rounded-lg text-center">
                                 <p class="text-gray-600 text-sm">Đánh giá</p>
-                                <p class="text-2xl font-bold text-gray-900">4.8</p>
+                                <p class="text-3xl font-bold text-blue-700 mt-1">4.8</p>
                             </div>
                         </div>
                     </div>
@@ -178,20 +180,20 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         @foreach (var job in Model.JobPosts)
                         {
-                            <div class="border border-gray-200 rounded-lg p-6">
+                            <div class="border border-gray-200 rounded-xl p-6 hover:shadow-md transition duration-300">
                                 <div class="flex justify-between items-start mb-3">
                                     <h3 class="font-semibold text-lg text-gray-900">
-                                        <a asp-controller="Worker" asp-action="JobDetails" asp-route-id="@job.Id" class="hover:text-blue-600">
+                                        <a asp-controller="Worker" asp-action="JobDetails" asp-route-id="@job.Id" class="hover:text-blue-600 transition-colors duration-200">
                                             @job.Title
                                         </a>
                                     </h3>
-                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                    <span class="bg-gray-100 text-gray-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                                         @job.PostType
                                     </span>
                                 </div>
 
                                 <div class="flex items-center text-gray-500 text-sm mb-3">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                     </svg>
@@ -199,37 +201,37 @@
                                 </div>
 
                                 <div class="flex flex-wrap gap-2 mb-4">
-                                    <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                    <span class="bg-gray-100 text-gray-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                         @job.JobType
                                     </span>
-                                    @if (job.SalaryMin.HasValue && job.SalaryMax.HasValue)
+                                    @if (job.SalaryMin.HasValue || job.SalaryMax.HasValue)
                                     {
-                                        <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                                            @job.SalaryMin.Value.ToString("#,##0") - @job.SalaryMax.Value.ToString("#,##0") VNĐ
-                                        </span>
-                                    }
-                                    else if (job.SalaryMin.HasValue)
-                                    {
-                                        <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                                            Từ @job.SalaryMin.Value.ToString("#,##0") VNĐ
-                                        </span>
-                                    }
-                                    else if (job.SalaryMax.HasValue)
-                                    {
-                                        <span class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                                            Đến @job.SalaryMax.Value.ToString("#,##0") VNĐ
+                                        <span class="bg-gray-100 text-gray-700 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                            @if (job.SalaryMin.HasValue && job.SalaryMax.HasValue)
+                                            {
+                                                <span>@job.SalaryMin.Value.ToString("#,##0") - @job.SalaryMax.Value.ToString("#,##0") VNĐ</span>
+                                            }
+                                            else if (job.SalaryMin.HasValue)
+                                            {
+                                                <span>Từ @job.SalaryMin.Value.ToString("#,##0") VNĐ</span>
+                                            }
+                                            else if (job.SalaryMax.HasValue)
+                                            {
+                                                <span>Đến @job.SalaryMax.Value.ToString("#,##0") VNĐ</span>
+                                            }
                                         </span>
                                     }
                                 </div>
 
-                                <div class="flex justify-between items-center">
+                                <div class="flex justify-between items-center pt-4 border-t border-gray-100">
                                     <div class="flex items-center text-sm text-gray-500">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
+                                        <span>@((DateTime.Now - job.CreatedAt.Value).TotalDays < 1 ? "Hôm nay" : $"{(int)(DateTime.Now - job.CreatedAt.Value).TotalDays} ngày trước")</span>
                                     </div>
 
-                                    <a asp-controller="Worker" asp-action="JobDetails" asp-route-id="@job.Id" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    <a asp-controller="Worker" asp-action="JobDetails" asp-route-id="@job.Id" class="text-blue-600 hover:text-blue-800 text-sm font-semibold">
                                         Xem chi tiết
                                     </a>
                                 </div>
@@ -239,24 +241,24 @@
                 }
                 else
                 {
-                    <div class="text-center py-12">
-                        <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    <div class="text-center py-12 bg-gray-50 rounded-lg">
+                        <svg class="w-20 h-20 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
-                        <h3 class="text-lg font-medium text-gray-900 mb-1">Chưa có việc làm nào được đăng</h3>
-                        <p class="text-gray-600">Nhà tuyển dụng này chưa đăng việc làm nào</p>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Chưa có việc làm nào được đăng</h3>
+                        <p class="text-gray-600">Nhà tuyển dụng này chưa đăng việc làm nào.</p>
                     </div>
                 }
             </div>
 
             <!-- Contact Tab -->
             <div id="contact-tab" class="tab-content hidden">
-                <div class="max-w-md">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Thông tin liên hệ</h2>
+                <div class="max-w-md bg-gray-50 p-6 rounded-lg shadow-inner">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Thông tin liên hệ</h2>
 
                     <div class="space-y-4">
                         <div class="flex items-center">
-                            <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-gray-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
                             <span class="text-gray-800">@Model.User.Email</span>
@@ -265,7 +267,7 @@
                         @if (Model.UserDetail != null && !string.IsNullOrEmpty(Model.UserDetail.PhoneNumber))
                         {
                             <div class="flex items-center">
-                                <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 text-gray-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                                 </svg>
                                 <span class="text-gray-800">@Model.UserDetail.PhoneNumber</span>
@@ -275,7 +277,7 @@
                         @if (Model.UserDetail != null && !string.IsNullOrEmpty(Model.UserDetail.Address))
                         {
                             <div class="flex items-start">
-                                <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 text-gray-500 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
@@ -299,11 +301,11 @@
                 // Remove active class from all tabs
                 document.querySelectorAll('.tab-button').forEach(btn => {
                     btn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
-                    btn.classList.add('text-gray-500');
+                    btn.classList.add('text-gray-600');
                 });
 
                 // Add active class to clicked tab
-                this.classList.remove('text-gray-500');
+                this.classList.remove('text-gray-600');
                 this.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
 
                 // Hide all tab content
